@@ -1,0 +1,99 @@
+name: CI/CD Pipeline Frontend
+
+# Reference only for now: this pipeline never fires on push or pull request.
+# Uncomment the triggers below to activate it.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+  DOCKER_USERNAME: djmaldonado19
+  DOCKER_IMAGE: fitness-app-frontend
+  SERVER_IP: 172.190.44.206
+  SERVER_PATH: /home/azureuser/ayd-practica1-frontend
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # `npm run build` is `tsc -b && vite build`, so this covers type-checking too.
+      - name: Type-check and build
+        run: npm run build
+
+  docker:
+    needs: quality
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=raw,value=${{ github.run_number }}
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: docker
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+      
+      - name: Deploy over SSH
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
+            "${{ secrets.SSH_USER }}@${{ env.SERVER_IP }}" "
+              set -euo pipefail
+              cd ${{ env.SERVER_PATH }}
+              git pull origin main
+              echo 'VERSION=${{ github.run_number }}' > .env
+              docker compose pull
+              docker compose up -d --remove-orphans --wait
+              curl -fsS http://localhost:4200/ > /dev/null
+              docker image prune -f
+            "
