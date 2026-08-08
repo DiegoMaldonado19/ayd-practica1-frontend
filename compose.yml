@@ -1,7 +1,18 @@
-name: fitness-app
+name: fitness-app-frontend
 
 services:
+  dev:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "[ -x node_modules/.bin/vite ] || npm ci; exec npm run dev -- --host 0.0.0.0"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+
   frontend:
+    profiles: [ "prod" ]
     image: djmaldonado19/fitness-app-frontend:${VERSION:-latest}
     build:
       context: .
@@ -9,10 +20,9 @@ services:
     container_name: fitness_app_frontend
     restart: unless-stopped
     ports:
-      # Keep 4200 exposed so the documented URL of the practice does not change.
       - "4200:80"
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost/"]
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost/" ]
       interval: 30s
       timeout: 3s
       start_period: 5s
