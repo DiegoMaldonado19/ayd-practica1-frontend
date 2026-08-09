@@ -20,7 +20,7 @@ env:
   DOCKER_IMAGE: fitness-app-frontend
 
 jobs:
-  quality:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,8 +39,8 @@ jobs:
       - name: Type-check and build
         run: npm run build
 
-  docker:
-    needs: quality
+  docker-push:
+    needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -72,7 +72,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    needs: docker
+    needs: docker-push
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
