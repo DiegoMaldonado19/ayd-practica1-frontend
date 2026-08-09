@@ -83,7 +83,6 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           REPO_PATH:   ${{ secrets.REPO_PATH }}
-          VERSION:     ${{ github.run_number }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
@@ -93,9 +92,10 @@ jobs:
               set -euo pipefail
               cd '$REPO_PATH'
               git pull origin main
-              echo 'VERSION=$VERSION' > .env
-              docker compose --profile prod pull
-              docker compose --profile prod up -d --remove-orphans --wait
-              curl -fsS http://localhost:4200/ > /dev/null
+              # The browser resolves this URL, so localhost would point at the visitor's machine.
+              echo 'VITE_API_BASE_URL=http://$SERVER_HOST:8080' > .env
+              docker compose pull
+              docker compose up -d --remove-orphans --wait
+              curl -fsS http://localhost:5173/ > /dev/null
               docker image prune -f
             "
