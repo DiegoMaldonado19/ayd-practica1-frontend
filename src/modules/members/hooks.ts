@@ -48,7 +48,7 @@ export function useCreateMember() {
       enqueueSnackbar("Socio creado correctamente", { variant: "success" });
       queryClient.invalidateQueries({ queryKey: ["members"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message = getErrorMessage(error, "No se pudo crear el socio");
       enqueueSnackbar(message, { variant: "error" });
     },
@@ -66,7 +66,7 @@ export function useUpdateMember(memberId: number) {
       queryClient.invalidateQueries({ queryKey: ["members", memberId] });
       queryClient.invalidateQueries({ queryKey: ["members"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message = getErrorMessage(error, "No se pudo actualizar");
       enqueueSnackbar(message, { variant: "error" });
     },
@@ -85,7 +85,7 @@ export function useUpdateMemberStatus(memberId: number) {
       queryClient.invalidateQueries({ queryKey: ["members", memberId] });
       queryClient.invalidateQueries({ queryKey: ["members"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message = getErrorMessage(error, "No se pudo cambiar el estado");
       enqueueSnackbar(message, { variant: "error" });
     },
