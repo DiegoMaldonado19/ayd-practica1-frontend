@@ -1,10 +1,3 @@
-// src/modules/members/hooks.ts
-//
-// Envuelve services.ts con react-query. Las pantallas (pages/) consumen
-// estos hooks, nunca llaman a services.ts directo — así el cache, el
-// loading state y el refetch después de mutar quedan resueltos en un
-// solo lugar.
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "notistack";
 import { getErrorMessage } from "@/api/types";
@@ -34,7 +27,7 @@ export function useMember(memberId: number | undefined) {
   return useQuery({
     queryKey: ["members", memberId],
     queryFn: () => getMemberById(memberId as number),
-    enabled: !!memberId, // no dispara la llamada si aún no hay id
+    enabled: !!memberId,
   });
 }
 
