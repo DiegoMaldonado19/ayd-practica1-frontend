@@ -1,5 +1,6 @@
 export type MemberStatus = "ACTIVE" | "INACTIVE" | "WITHDRAWN";
 export type DocumentType = "DPI" | "PASSPORT" | "NIT";
+export type Gender = "M" | "F" | "OTHER"; // Confirmar en schema.sql si "OTHER" es válido
 
 export interface PersonDTO {
   person_id: number;
@@ -7,19 +8,18 @@ export interface PersonDTO {
   document_number: string;
   first_name: string;
   last_name: string;
-  full_name: string; 
-  gender: string;
-  birth_date: string | null; 
+  full_name: string;
+  gender: Gender;
+  birth_date: string | null;
   email: string | null;
   phone: string | null;
   address: string | null;
 }
 
-
 export interface Member {
   member_id: number;
   person: PersonDTO;
-  member_code: string; 
+  member_code: string;
   joined_on: string;
   status: MemberStatus;
   emergency_contact_name: string | null;
@@ -34,7 +34,7 @@ export interface CreateMemberDTO {
     document_number: string;
     first_name: string;
     last_name: string;
-    gender: string;
+    gender: Gender;
     birth_date: string;
     email?: string;
     phone?: string;
@@ -44,7 +44,6 @@ export interface CreateMemberDTO {
   emergency_contact_phone?: string;
   notes?: string;
 }
-
 
 export interface UpdateMemberDTO {
   person: {
@@ -52,7 +51,7 @@ export interface UpdateMemberDTO {
     document_number: string;
     first_name: string;
     last_name: string;
-    gender: string;
+    gender: Gender;
     birth_date: string;
     email?: string;
     phone?: string;
@@ -60,9 +59,8 @@ export interface UpdateMemberDTO {
   };
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
-  notes?: string;
+  notes?: string; // ✅ AGREGADO
 }
-
 
 export interface MemberListParams {
   page?: number;

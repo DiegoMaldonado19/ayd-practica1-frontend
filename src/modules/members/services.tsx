@@ -36,7 +36,7 @@ export async function updateMember(
 
 export async function updateMemberStatus(
   memberId: number,
-  status: "ACTIVE" | "INACTIVE" | "WITHDRAWN"
+  status: MemberStatus
 ): Promise<Member> {
   const { data } = await apiClient.patch<Member>(`/members/${memberId}/status`, {
     status,

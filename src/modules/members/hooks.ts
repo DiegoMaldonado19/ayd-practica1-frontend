@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "notistack";
-import { getErrorMessage } from "@/api/types";
+import { getErrorCode, getErrorMessage } from "@/api/types";
 import {
   getMembers,
   getMemberById,
@@ -12,6 +12,7 @@ import type {
   CreateMemberDTO,
   UpdateMemberDTO,
   MemberListParams,
+  MemberStatus,
 } from "@/modules/members/types";
 
 const membersKey = (params?: MemberListParams) => ["members", params] as const;
@@ -42,7 +43,16 @@ export function useCreateMember() {
       queryClient.invalidateQueries({ queryKey: ["members"] });
     },
     onError: (error: unknown) => {
-      const message = getErrorMessage(error, "No se pudo crear el socio");
+      const errorCode = getErrorCode(error);
+      let message = getErrorMessage(error, "No se pudo crear el socio");
+
+      // ✅ Manejo específico de errores conocidos
+      if (errorCode === "DOCUMENT_ALREADY_REGISTERED") {
+        message = "Ya existe un socio con ese número de documento";
+      } else if (errorCode === "VALIDATION_ERROR") {
+        message = "Por favor revisa los datos ingresados";
+      }
+
       enqueueSnackbar(message, { variant: "error" });
     },
   });
@@ -60,7 +70,13 @@ export function useUpdateMember(memberId: number) {
       queryClient.invalidateQueries({ queryKey: ["members"] });
     },
     onError: (error: unknown) => {
-      const message = getErrorMessage(error, "No se pudo actualizar");
+      const errorCode = getErrorCode(error);
+      let message = getErrorMessage(error, "No se pudo actualizar");
+
+      if (errorCode === "DOCUMENT_ALREADY_REGISTERED") {
+        message = "Ya existe otro socio con ese número de documento";
+      }
+
       enqueueSnackbar(message, { variant: "error" });
     },
   });
@@ -71,8 +87,7 @@ export function useUpdateMemberStatus(memberId: number) {
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation({
-    mutationFn: (status: "ACTIVE" | "INACTIVE" | "WITHDRAWN") =>
-      updateMemberStatus(memberId, status),
+    mutationFn: (status: MemberStatus) => updateMemberStatus(memberId, status),
     onSuccess: () => {
       enqueueSnackbar("Estado del socio actualizado", { variant: "success" });
       queryClient.invalidateQueries({ queryKey: ["members", memberId] });

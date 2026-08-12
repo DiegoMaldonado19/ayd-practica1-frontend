@@ -16,38 +16,45 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  useCreateMember,
-  useMember,
-  useUpdateMember,
-} from "@/modules/members/hooks";
+  useCreateEmployee,
+  useEmployee,
+  useUpdateEmployee,
+} from "@/modules/employees/hooks";
 import type {
-  CreateMemberDTO,
-  UpdateMemberDTO,
-  DocumentType,
-  Gender,
-} from "@/modules/members/types";
+  CreateEmployeeDTO,
+  UpdateEmployeeDTO,
+  Position,
+} from "@/modules/employees/types";
+import type { DocumentType, Gender } from "@/modules/members/types";
 
 const schema = yup.object({
   document_type: yup
     .mixed<DocumentType>()
     .oneOf(["DPI", "PASSPORT", "NIT"])
     .required("Selecciona el tipo de documento"),
-  document_number: yup
-    .string()
-    .required("El número de documento es requerido"),
+  document_number: yup.string().required("El número de documento es requerido"),
   first_name: yup.string().required("El nombre es requerido"),
   last_name: yup.string().required("El apellido es requerido"),
-  gender: yup
-    .mixed<Gender>()
-    .oneOf(["M", "F", "OTHER"])
-    .required("Selecciona el género"),
-  birth_date: yup.string().required("La fecha de nacimiento es requerida"),
+  gender: yup.mixed<Gender>().oneOf(["M", "F", "OTHER"]).optional(),
+  birth_date: yup.string().optional(),
   email: yup.string().email("Correo inválido").optional(),
   phone: yup.string().optional(),
   address: yup.string().optional(),
-  emergency_contact_name: yup.string().optional(),
-  emergency_contact_phone: yup.string().optional(),
-  notes: yup.string().optional(),
+  position: yup
+    .mixed<Position>()
+    .oneOf(["ADMIN", "RECEPTIONIST", "TRAINER"])
+    .required("Selecciona el puesto"),
+  hired_on: yup.string().required("La fecha de contratación es requerida"),
+  max_member_load: yup
+    .number()
+    .positive("Debe ser un número positivo")
+    .typeError("Debe ser un número")
+    .when("position", {
+      is: "TRAINER",
+      then: (s) => s.required("La carga máxima es requerida para un entrenador"),
+      otherwise: (s) => s.optional(),
+    }),
+  bio: yup.string().optional(),
 });
 
 type FormValues = yup.InferType<typeof schema>;
@@ -55,20 +62,21 @@ type FormValues = yup.InferType<typeof schema>;
 const sectionTitleSx = { fontWeight: 600, mb: 0.5 };
 const sectionDescriptionSx = { color: "text.secondary", mb: 2.5 };
 
-export function MemberFormPage() {
+export function EmployeeFormPage() {
   const navigate = useNavigate();
-  const { memberId } = useParams();
-  const isEdit = Boolean(memberId);
-  const { data: member, isLoading: isLoadingMember } = useMember(
-    isEdit ? Number(memberId) : undefined
+  const { employeeId } = useParams();
+  const isEdit = Boolean(employeeId);
+  const { data: employee, isLoading: isLoadingEmployee } = useEmployee(
+    isEdit ? Number(employeeId) : undefined
   );
-  const createMutation = useCreateMember();
-  const updateMutation = useUpdateMember(Number(memberId));
+  const createMutation = useCreateEmployee();
+  const updateMutation = useUpdateEmployee(Number(employeeId));
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: yupResolver(schema),
@@ -82,29 +90,34 @@ export function MemberFormPage() {
       email: "",
       phone: "",
       address: "",
-      emergency_contact_name: "",
-      emergency_contact_phone: "",
-      notes: "",
+      position: "RECEPTIONIST",
+      hired_on: "",
+      max_member_load: 20,
+      bio: "",
     },
   });
 
+  const position = watch("position");
+  const isTrainer = position === "TRAINER";
+
   useEffect(() => {
-    if (!member) return;
+    if (!employee) return;
     reset({
-      document_type: member.person.document_type,
-      document_number: member.person.document_number,
-      first_name: member.person.first_name,
-      last_name: member.person.last_name,
-      gender: member.person.gender,
-      birth_date: member.person.birth_date ?? "",
-      email: member.person.email ?? "",
-      phone: member.person.phone ?? "",
-      address: member.person.address ?? "",
-      emergency_contact_name: member.emergency_contact_name ?? "",
-      emergency_contact_phone: member.emergency_contact_phone ?? "",
-      notes: member.notes ?? "",
+      document_type: employee.person.document_type,
+      document_number: employee.person.document_number,
+      first_name: employee.person.first_name,
+      last_name: employee.person.last_name,
+      gender: employee.person.gender,
+      birth_date: employee.person.birth_date || "",
+      email: employee.person.email || "",
+      phone: employee.person.phone || "",
+      address: employee.person.address || "",
+      position: employee.position,
+      hired_on: employee.hired_on,
+      max_member_load: 20,
+      bio: "",
     });
-  }, [member, reset]);
+  }, [employee, reset]);
 
   const onSubmit = (values: FormValues) => {
     const personPayload = {
@@ -112,39 +125,38 @@ export function MemberFormPage() {
       document_number: values.document_number,
       first_name: values.first_name,
       last_name: values.last_name,
-      gender: values.gender,
-      birth_date: values.birth_date,
+      gender: values.gender || undefined,
+      birth_date: values.birth_date || undefined,
       email: values.email || undefined,
       phone: values.phone || undefined,
       address: values.address || undefined,
     };
 
-    const commonPayload = {
-      emergency_contact_name: values.emergency_contact_name || undefined,
-      emergency_contact_phone: values.emergency_contact_phone || undefined,
-      notes: values.notes || undefined,
-    };
-
     if (isEdit) {
-      const updatePayload: UpdateMemberDTO = {
+      const updatePayload: UpdateEmployeeDTO = {
         person: personPayload,
-        ...commonPayload,
+        hired_on: values.hired_on,
       };
       updateMutation.mutate(updatePayload, {
-        onSuccess: () => navigate(`/members/${memberId}`),
+        onSuccess: () => navigate(`/employees/${employeeId}`),
       });
     } else {
-      const createPayload: CreateMemberDTO = {
+      const createPayload: CreateEmployeeDTO = {
         person: personPayload,
-        ...commonPayload,
+        position: values.position,
+        hired_on: values.hired_on,
+        ...(isTrainer && {
+          max_member_load: values.max_member_load,
+          bio: values.bio || undefined,
+        }),
       };
       createMutation.mutate(createPayload, {
-        onSuccess: (created) => navigate(`/members/${created.member_id}`),
+        onSuccess: (created) => navigate(`/employees/${created.employee_id}`),
       });
     }
   };
 
-  if (isEdit && isLoadingMember) {
+  if (isEdit && isLoadingEmployee) {
     return (
       <Box display="flex" justifyContent="center" p={6}>
         <CircularProgress />
@@ -154,7 +166,7 @@ export function MemberFormPage() {
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const cancel = () =>
-    navigate(isEdit ? `/members/${memberId}` : "/members");
+    navigate(isEdit ? `/employees/${employeeId}` : "/employees");
 
   return (
     <Box sx={{ maxWidth: 960, mx: "auto", py: { xs: 2, sm: 3 } }}>
@@ -163,7 +175,7 @@ export function MemberFormPage() {
       </Button>
       <Box sx={{ mb: 1 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          {isEdit ? "Editar socio" : "Registrar nuevo socio"}
+          {isEdit ? "Editar empleado" : "Registrar nuevo empleado"}
         </Typography>
       </Box>
 
@@ -174,7 +186,7 @@ export function MemberFormPage() {
               Identificación
             </Typography>
             <Typography variant="body2" sx={sectionDescriptionSx}>
-              Datos necesarios para identificar al socio.
+              Datos necesarios para identificar al empleado.
             </Typography>
             <Grid container spacing={2.5}>
               <Grid item xs={12} sm={4}>
@@ -253,7 +265,7 @@ export function MemberFormPage() {
                   )}
                 />
               </Grid>
-              <Grid item xs={12} sm={5}>
+              <Grid item xs={12} sm={6}>
                 <Controller
                   name="gender"
                   control={control}
@@ -273,7 +285,7 @@ export function MemberFormPage() {
                   )}
                 />
               </Grid>
-              <Grid item xs={12} sm={7}>
+              <Grid item xs={12} sm={6}>
                 <Controller
                   name="birth_date"
                   control={control}
@@ -329,57 +341,87 @@ export function MemberFormPage() {
             <Divider sx={{ my: 2 }} />
 
             <Typography variant="h6" sx={sectionTitleSx}>
-              Contacto de emergencia
+              Información laboral
             </Typography>
             <Typography variant="body2" sx={sectionDescriptionSx}>
-              Persona a contactar en caso de emergencia.
+              Datos del puesto y fecha de contratación.
             </Typography>
             <Grid container spacing={2.5}>
               <Grid item xs={12} sm={6}>
                 <Controller
-                  name="emergency_contact_name"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField {...field} label="Nombre completo" fullWidth />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Controller
-                  name="emergency_contact_phone"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField {...field} label="Teléfono" fullWidth />
-                  )}
-                />
-              </Grid>
-            </Grid>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Typography variant="h6" sx={sectionTitleSx}>
-              Notas adicionales
-            </Typography>
-            <Typography variant="body2" sx={sectionDescriptionSx}>
-              Información adicional relevante sobre el socio.
-            </Typography>
-            <Grid container spacing={2.5}>
-              <Grid item xs={12}>
-                <Controller
-                  name="notes"
+                  name="position"
                   control={control}
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label="Notas"
+                      select
+                      label="Puesto"
                       fullWidth
-                      multiline
-                      rows={4}
-                      placeholder="Ej: Condiciones médicas, preferencias, observaciones..."
+                      error={!!errors.position}
+                      helperText={errors.position?.message}
+                      disabled={isEdit}
+                    >
+                      <MenuItem value="ADMIN">Administrador</MenuItem>
+                      <MenuItem value="RECEPTIONIST">Recepcionista</MenuItem>
+                      <MenuItem value="TRAINER">Entrenador</MenuItem>
+                    </TextField>
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="hired_on"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type="date"
+                      label="Fecha de contratación"
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                      error={!!errors.hired_on}
+                      helperText={errors.hired_on?.message}
                     />
                   )}
                 />
               </Grid>
+
+              {isTrainer && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <Controller
+                      name="max_member_load"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          type="number"
+                          label="Carga máxima de socios"
+                          fullWidth
+                          error={!!errors.max_member_load}
+                          helperText={errors.max_member_load?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Controller
+                      name="bio"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Biografía / especialidad general"
+                          fullWidth
+                          multiline
+                          rows={3}
+                          placeholder="Ej: Especialista en fuerza y acondicionamiento..."
+                        />
+                      )}
+                    />
+                  </Grid>
+                </>
+              )}
             </Grid>
           </Box>
 
