@@ -3,7 +3,7 @@ name: CI/CD Pipeline Frontend
 on:
   workflow_dispatch:
   push:
-    branches: ["*"]
+    branches: ["**"]
   pull_request:
     branches: [main]
 
@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   NODE_VERSION: '24'
@@ -95,7 +95,7 @@ jobs:
               # The browser resolves this URL, so localhost would point at the visitor's machine.
               echo 'VITE_API_BASE_URL=http://$SERVER_HOST:8080' > .env
               docker compose pull
-              docker compose up -d --remove-orphans --wait
+              docker compose up -d --remove-orphans --wait --wait-timeout 300
               curl -fsS http://localhost:5173/ > /dev/null
               docker image prune -f
             "
