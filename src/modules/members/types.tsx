@@ -71,3 +71,6 @@ export interface MemberListParams {
   plan_code?: string;
   membership_status?: string;
 }
+export interface TransferMembersDTO {
+  to_trainer_id: number;
+}

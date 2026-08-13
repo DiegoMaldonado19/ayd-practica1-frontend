@@ -7,6 +7,7 @@ import type {
   UpdateTrainerLoadDTO,
   ReplaceSpecialtiesDTO,
   TrainerListParams,
+  TransferMembersDTO,
 } from "./types";
 
 export async function getTrainers(
@@ -40,6 +41,17 @@ export async function replaceSpecialties(
 ): Promise<Trainer> {
   const { data } = await apiClient.put<Trainer>(
     `/trainers/${trainerId}/specialties`,
+    payload
+  );
+  return data;
+}
+
+export async function transferTrainerMembers(
+  trainerId: number,
+  payload: TransferMembersDTO
+): Promise<unknown[]> {
+  const { data } = await apiClient.post<unknown[]>(
+    `/trainers/${trainerId}/member-transfers`,
     payload
   );
   return data;

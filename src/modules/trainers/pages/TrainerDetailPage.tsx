@@ -15,6 +15,7 @@ import {
 import { ArrowBack } from "@mui/icons-material";
 import { useTrainer, useUpdateTrainerLoad, useReplaceSpecialties } from "@/modules/trainers/hooks";
 import type { Specialty, Trainer } from "@/modules/trainers/types";
+import { TransferDialog } from "./TransferDialog";
 
 const ALL_SPECIALTIES: Specialty[] = ["WEIGHT_LOSS", "MUSCLE_GAIN", "REHABILITATION", "FUNCTIONAL", "CARDIO"];
 
@@ -25,8 +26,6 @@ const specialtyLabel: Record<Specialty, string> = {
   FUNCTIONAL: "Funcional",
   CARDIO: "Cardio",
 };
-
-// 1. COMPONENTE CONTENEDOR: Solo maneja la petición y los estados de carga
 export function TrainerDetailPage() {
   const { trainerId } = useParams();
   const { data: trainer, isLoading, isError } = useTrainer(Number(trainerId));
@@ -47,18 +46,15 @@ export function TrainerDetailPage() {
     );
   }
 
-  // Cuando ya tenemos los datos seguros, montamos el contenido
   return <TrainerDetailContent trainer={trainer} trainerId={Number(trainerId)} />;
 }
 
-// 2. COMPONENTE DE CONTENIDO: Inicializa sus estados directamente (sin useEffect)
-// Nota: Puedes tipar 'trainer' con la interfaz correcta si la tienes exportada (ej. trainer: Trainer)
 function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; trainerId: number }) {
   const navigate = useNavigate();
   const updateLoad = useUpdateTrainerLoad(trainerId);
   const replaceSpecialties = useReplaceSpecialties(trainerId);
 
-  // Inicialización directa: Al montarse este componente, 'trainer' ya trae datos
+  const [transferOpen, setTransferOpen] = useState(false);
   const [maxLoad, setMaxLoad] = useState<number>(trainer.max_member_load);
   const [bio, setBio] = useState<string>(trainer.bio || "");
   const [specialties, setSpecialties] = useState<Specialty[]>(trainer.specialties);
@@ -104,7 +100,7 @@ function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; traine
         <Button
           variant="outlined"
           color="warning"
-          onClick={() => navigate(`/trainers/${trainerId}/transfer`)}
+          onClick={() => setTransferOpen(true)}
         >
           Transferir cartera
         </Button>
@@ -229,6 +225,12 @@ function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; traine
           </Grid>
         </Grid>
       </Paper>
+
+      <TransferDialog
+        open={transferOpen}
+        onClose={() => setTransferOpen(false)}
+        sourceTrainer={trainer}
+      />
     </Box>
   );
 }
