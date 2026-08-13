@@ -78,7 +78,7 @@ export function useTransferTrainerMembers(trainerId: number) {
     onSuccess: (_, vars) => {
       enqueueSnackbar("Cartera transferida correctamente", {
         variant: "success",
-        persist: true,
+       // persist: true,
       });
       queryClient.invalidateQueries({ queryKey: ["trainers"] });
       queryClient.invalidateQueries({ queryKey: ["trainers", trainerId] });
