@@ -7,6 +7,7 @@ export interface AuthContextValue {
   user: UserProfile | null;
   status: SessionStatus;
   setSession: (response: LoginSuccessResponse) => void;
+  updateUser: (partial: Partial<UserProfile>) => void;
   logout: () => Promise<void>;
 }
 

@@ -7,6 +7,7 @@ import { VerifyCodePage } from "@/modules/auth/pages/VerifyCodePage";
 import { ForgotPasswordPage } from "@/modules/auth/pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/modules/auth/pages/ResetPasswordPage";
 import { DashboardPage } from "@/modules/dashboard/pages/DashboardPage";
+import { SecuritySettingsPage } from "@/modules/auth/pages/SecuritySettingsPage";
 import { MembersListPage } from "@/modules/members/pages/MembersListPage";
 import { MemberFormPage } from "@/modules/members/pages/MemberFormPage";
 import { MemberDetailPage } from "@/modules/members/pages/MemberDetailPage";
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: "/", element: <DashboardPage /> },
+          { path: "/account/security", element: <SecuritySettingsPage /> },
           {
             // OJO: confirma en src/modules/auth/types.ts que el Role type
             // usa exactamente estos strings ("ADMIN", "RECEPTIONIST").
