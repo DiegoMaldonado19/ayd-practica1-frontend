@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Link as RouterLink, Outlet } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -25,6 +25,9 @@ export function AppLayout() {
               <Chip label={ROLE_LABEL[user.role]} size="small" color="primary" variant="outlined" />
             </>
           )}
+          <Button component={RouterLink} to="/account/security" variant="text" size="small">
+            Seguridad
+          </Button>
           <Button variant="outlined" size="small" onClick={() => void logout()}>
             Cerrar sesión
           </Button>

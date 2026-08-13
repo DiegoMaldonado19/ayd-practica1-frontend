@@ -7,6 +7,7 @@ import { VerifyCodePage } from "@/modules/auth/pages/VerifyCodePage";
 import { ForgotPasswordPage } from "@/modules/auth/pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/modules/auth/pages/ResetPasswordPage";
 import { DashboardPage } from "@/modules/dashboard/pages/DashboardPage";
+import { SecuritySettingsPage } from "@/modules/auth/pages/SecuritySettingsPage";
 
 export const router = createBrowserRouter([
   {
@@ -28,7 +29,10 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AppLayout />,
-        children: [{ path: "/", element: <DashboardPage /> }],
+        children: [
+          { path: "/", element: <DashboardPage /> },
+          { path: "/account/security", element: <SecuritySettingsPage /> },
+        ],
       },
     ],
   },

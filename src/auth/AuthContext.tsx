@@ -32,6 +32,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("authenticated");
   }, []);
 
+  const updateUser = useCallback((partial: Partial<UserProfile>) => {
+    setUser((current) => (current ? { ...current, ...partial } : current));
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authService.logout();
@@ -44,7 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("unauthenticated");
   }, []);
 
-  const value = useMemo(() => ({ user, status, setSession, logout }), [user, status, setSession, logout]);
+  const value = useMemo(
+    () => ({ user, status, setSession, updateUser, logout }),
+    [user, status, setSession, updateUser, logout],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
