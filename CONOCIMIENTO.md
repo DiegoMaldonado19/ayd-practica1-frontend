@@ -100,6 +100,16 @@ TODO: cada cambio relevante (feature, bugfix, ajuste de lint, corrección de bui
   - `npm run build`: no ejecutado en esta sesión, no requerido para este ajuste puntual
 - Notas adicionales: La validación local “Un plan sin clases grupales no puede tener límite semanal” se eliminó del flujo de creación porque estaba reemplazando el mensaje del backend. El sistema ahora deja que el servidor responda con su error real, y se mantiene una validación lógica local de máximo 7 clases por semana.
 
+- Fecha: 2026-08-13
+- Autor: fer
+- Tipo: feature
+- Descripción breve: Se inició el módulo de clases con tipos, servicios, hooks y una primera vista de cartelera basada en el contrato de Postman para group-classes y class-sessions.
+- Archivos modificados: src/modules/classes/types.ts, src/modules/classes/services.ts, src/modules/classes/hooks.ts, src/modules/classes/pages/ClassesListPage.tsx, src/router.tsx
+- Comprobaciones locales realizadas:
+  - `npm run lint`: pendiente de validación
+  - `npm run build`: pendiente de validación
+- Notas adicionales: La vista deja la base de la cartelera y filtro por disciplina/clase; la funcionalidad completa de inscripción y espera queda pendiente del backend y del resto del flujo de UI.
+
 Plantilla a copiar cada vez que se haga un cambio:
 
 ```
