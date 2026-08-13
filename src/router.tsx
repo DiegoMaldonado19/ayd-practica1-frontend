@@ -21,6 +21,7 @@ import { MembershipPlanFormPage } from "@/modules/membership/pages/MembershipPla
 import { MembershipDetailPage } from "@/modules/membership/pages/MembershipDetailPage";
 import { VisitsPage } from "@/modules/access/pages/VisitsPage";
 import { GuestPassesPage } from "@/modules/access/pages/GuestPassesPage";
+import { MembershipPlansListPage } from "./modules/membership/pages/MembershipPlansListPages";
 
 export const router = createBrowserRouter([
   {
@@ -79,6 +80,7 @@ export const router = createBrowserRouter([
               { path: "/membership-plans/:planId/edit", element: <MembershipPlanFormPage /> },
               { path: "/memberships", element: <MembershipsListPage /> },
               { path: "/memberships/:membershipId", element: <MembershipDetailPage /> },
+              { path: "/membership-plans", element: <MembershipPlansListPage /> }
             ],
           },
           {

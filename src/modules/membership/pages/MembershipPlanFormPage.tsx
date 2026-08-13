@@ -48,15 +48,8 @@ const schema = yup.object({
     .typeError("Debe ser un número")
     .integer("Debe ser entero")
     .positive("Debe ser mayor que cero")
-    .nullable()
-    .test(
-      "limit-requires-classes",
-      "Un plan sin clases grupales no puede tener límite semanal",
-      (value, ctx) => {
-        if (value == null) return true;
-        return ctx.parent.includes_group_classes === true;
-      }
-    ),
+    .max(7, "Un plan no puede exceder 7 clases por semana")
+    .nullable(),
   includes_personal_trainer: yup.boolean().required(),
 });
 

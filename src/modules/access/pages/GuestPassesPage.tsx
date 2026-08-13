@@ -14,13 +14,14 @@ import {
 import { AgGridReact } from 'ag-grid-react';
 import { ModuleRegistry, AllCommunityModule, themeMaterial } from 'ag-grid-community';
 import type { ColDef } from 'ag-grid-community';
-import { useForm, Controller, useWatch } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useGuestPasses, useCreateGuestPass, useMembersMap } from '../hooks';
 import type { GuestPass, PassType, CreateGuestPassDTO } from '../types';
 import type { DocumentType } from '@/modules/members/types';
 import { MemberPicker } from '../components/MemberPicker';
+import { AccessNavTabs } from '../components/AccessNavTabs';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -32,11 +33,31 @@ const passTypeLabel: Record<PassType, string> = {
 
 const schema = yup.object({
   document_type: yup.mixed<DocumentType>().oneOf(['DPI', 'PASSPORT', 'NIT']).required('Requerido'),
-  document_number: yup.string().required('Requerido'),
+  document_number: yup
+    .string()
+    .required('Requerido')
+    .when('document_type', {
+      is: 'DPI',
+      then: (schema) => schema.matches(/^\d{13}$/, 'El DPI debe tener exactamente 13 dígitos'),
+      otherwise: (schema) =>
+        schema.when('document_type', {
+          is: 'PASSPORT',
+          then: (passportSchema) => passportSchema.matches(/^\d{6}$|^\d{9}$/, 'El pasaporte debe tener 6 o 9 dígitos'),
+          otherwise: (nitSchema) =>
+            nitSchema.when('document_type', {
+              is: 'NIT',
+              then: (nitValueSchema) => nitValueSchema.matches(/^\d{8}$|^\d{9}$/, 'El NIT debe tener 8 o 9 dígitos'),
+            }),
+        }),
+    }),
   first_name: yup.string().required('Requerido'),
   last_name: yup.string().required('Requerido'),
   email: yup.string().email('Email inválido').required('Requerido'),
-  phone: yup.string().required('Requerido'),
+  phone: yup
+    .string()
+    .transform((value) => value?.replace(/\D/g, '') || '')
+    .required('El teléfono es requerido')
+    .matches(/^\d{8}$/, 'El teléfono debe tener exactamente 8 dígitos'),
   pass_type: yup
     .mixed<PassType>()
     .oneOf(['FREE_TRIAL', 'PAID_DAY_PASS', 'MEMBER_GUEST'])
@@ -81,7 +102,7 @@ export function GuestPassesPage() {
     },
   });
 
-  const passType = useWatch({ control, name: 'pass_type' });
+  const [passType, setPassType] = useState<PassType>('FREE_TRIAL');
 
   const onSubmit = useCallback(
     (formData: GuestPassFormData) => {
@@ -103,6 +124,7 @@ export function GuestPassesPage() {
       createMutate(payload, {
         onSuccess: () => {
           reset();
+          setPassType('FREE_TRIAL');
           setIsFormOpen(false);
         },
       });
@@ -145,7 +167,8 @@ export function GuestPassesPage() {
   );
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 5 }}>
+      <AccessNavTabs />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4">Pases de Invitado</Typography>
         <Button variant="contained" onClick={() => setIsFormOpen(true)}>
@@ -169,7 +192,7 @@ export function GuestPassesPage() {
         <DialogContent>
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
             <Grid container spacing={2}>
-              <Grid xs={6}>
+              <Grid xs={6} padding={{ xs: 0, sm: 2 }}  >
                 <Controller
                   name="document_type"
                   control={control}
@@ -182,7 +205,7 @@ export function GuestPassesPage() {
                   )}
                 />
               </Grid>
-              <Grid xs={6}>
+              <Grid xs={6} padding={{ xs: 0, sm: 2 }}>
                 <Controller
                   name="document_number"
                   control={control}
@@ -191,7 +214,7 @@ export function GuestPassesPage() {
                   )}
                 />
               </Grid>
-              <Grid xs={6}>
+              <Grid xs={6} padding={{ xs: 0, sm: 2 }}>
                 <Controller
                   name="first_name"
                   control={control}
@@ -200,7 +223,7 @@ export function GuestPassesPage() {
                   )}
                 />
               </Grid>
-              <Grid xs={6}>
+              <Grid xs={6} padding={{ xs: 0, sm: 2 }}>
                 <Controller
                   name="last_name"
                   control={control}
@@ -209,7 +232,7 @@ export function GuestPassesPage() {
                   )}
                 />
               </Grid>
-              <Grid xs={6}>
+              <Grid xs={6} padding={{ xs: 0, sm: 2 }}>
                 <Controller
                   name="email"
                   control={control}
@@ -218,7 +241,7 @@ export function GuestPassesPage() {
                   )}
                 />
               </Grid>
-              <Grid xs={6}>
+              <Grid xs={6} padding={{ xs: 0, sm: 2 }}>
                 <Controller
                   name="phone"
                   control={control}
@@ -227,12 +250,24 @@ export function GuestPassesPage() {
                   )}
                 />
               </Grid>
-              <Grid xs={12}>
+              <Grid xs={12} padding={{ xs: 0, sm: 2 }}>
                 <Controller
                   name="pass_type"
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} select label="Tipo de Pase" fullWidth error={!!errors.pass_type} helperText={errors.pass_type?.message}>
+                    <TextField
+                      {...field}
+                      select
+                      label="Tipo de Pase"
+                      fullWidth
+                      error={!!errors.pass_type}
+                      helperText={errors.pass_type?.message}
+                      onChange={(event) => {
+                        const value = event.target.value as PassType;
+                        field.onChange(value);
+                        setPassType(value);
+                      }}
+                    >
                       <MenuItem value="FREE_TRIAL">Día de Prueba (Gratuito)</MenuItem>
                       <MenuItem value="PAID_DAY_PASS">Pase de Día (Pagado)</MenuItem>
                       <MenuItem value="MEMBER_GUEST">Invitado de Socio</MenuItem>
@@ -241,7 +276,7 @@ export function GuestPassesPage() {
                 />
               </Grid>
               {passType === 'MEMBER_GUEST' && (
-                <Grid xs={12}>
+                <Grid xs={12} padding={{ xs: 0, sm: 2 }}>
                   <Controller
                     name="host_member_id"
                     control={control}

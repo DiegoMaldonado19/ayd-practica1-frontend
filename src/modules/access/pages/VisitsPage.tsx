@@ -17,6 +17,7 @@ import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { useVisits, useCreateVisit, useCheckoutVisit, useMembersMap } from '../hooks';
 import type { Visit } from '../types';
 import { MemberPicker } from '../components/MemberPicker';
+import { AccessNavTabs } from '../components/AccessNavTabs';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -122,6 +123,7 @@ export function VisitsPage() {
 
   return (
     <Box sx={{ p: 3 }}>
+      <AccessNavTabs />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
         <Typography variant="h4">Control de Acceso</Typography>
         <Button variant="contained" onClick={() => setIsCheckInOpen(true)}>

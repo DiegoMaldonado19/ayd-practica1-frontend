@@ -90,6 +90,16 @@ npm run build
 
 TODO: cada cambio relevante (feature, bugfix, ajuste de lint, corrección de build, refactor) debe quedar registrado en este archivo bajo el formato que aparece a continuación. Una IA o cualquier integrante del equipo **debe** usar exclusivamente la sección de registro de este archivo para conocer el historial y el estado de las tareas.
 
+- Fecha: 2026-08-13
+- Autor: fer
+- Tipo: bugfix
+- Descripción breve: Se añadieron validaciones específicas para pases de invitado y para límites razonables de clases por semana; además se corrigió la visualización del toast para que muestre el mensaje real del backend en planes de membresía y se agregara ayuda visual para editar filas.
+- Archivos modificados: src/modules/access/pages/GuestPassesPage.tsx, src/modules/membership/pages/MembershipPlanFormPage.tsx, src/modules/membership/pages/MembershipPlansListPages.tsx, src/modules/membership/hooks.ts, src/modules/membership/services.ts
+- Comprobaciones locales realizadas:
+  - `npm run lint`: OK
+  - `npm run build`: no ejecutado en esta sesión, no requerido para este ajuste puntual
+- Notas adicionales: La validación local “Un plan sin clases grupales no puede tener límite semanal” se eliminó del flujo de creación porque estaba reemplazando el mensaje del backend. El sistema ahora deja que el servidor responda con su error real, y se mantiene una validación lógica local de máximo 7 clases por semana.
+
 Plantilla a copiar cada vez que se haga un cambio:
 
 ```

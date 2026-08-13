@@ -88,11 +88,7 @@ export function useCreateMembershipPlan() {
       queryClient.invalidateQueries({ queryKey: ["membership-plans"] });
     },
     onError: (error: unknown) => {
-      const code = getErrorCode(error);
-      const message =
-        code === "VALIDATION_ERROR"
-          ? "Un plan sin clases grupales no puede tener límite semanal"
-          : getErrorMessage(error, "No se pudo crear el plan");
+      const message = getErrorMessage(error, "No se pudo crear el plan");
       enqueueSnackbar(message, { variant: "error" });
     },
   });
