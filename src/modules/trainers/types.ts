@@ -9,11 +9,13 @@ export type Specialty =
 
 export interface Trainer {
   trainer_id: number;
+  employee_id: number;
+  employee_code: string;
   person: PersonDTO;
   max_member_load: number;
   specialties: Specialty[];
-  bio?: string; 
-  active?: boolean; 
+  bio?: string;
+  active?: boolean;
 }
 
 export interface UpdateTrainerLoadDTO {
@@ -25,20 +27,14 @@ export interface ReplaceSpecialtiesDTO {
   specialties: Specialty[];
 }
 
+export interface TransferMembersDTO {
+  to_trainer_id: number;
+}
+
 export interface TrainerListParams {
   page?: number;
   size?: number;
   specialty?: Specialty;
   search?: string;
   sort?: string;
-}
-export interface Trainer {
-  trainer_id: number;
-  employee_id: number; 
-  employee_code: string; 
-  person: PersonDTO;
-  max_member_load: number;
-  specialties: Specialty[];
-  bio?: string;
-  active?: boolean;
 }

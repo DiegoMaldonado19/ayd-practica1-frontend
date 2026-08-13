@@ -8,11 +8,13 @@ import {
   getTrainerById,
   updateTrainerLoad,
   replaceSpecialties,
+  transferTrainerMembers,
 } from "./services";
 import type {
   UpdateTrainerLoadDTO,
   ReplaceSpecialtiesDTO,
   TrainerListParams,
+  TransferMembersDTO,
 } from "./types";
 
 export function useTrainers(params: TrainerListParams) {
@@ -62,6 +64,29 @@ export function useReplaceSpecialties(trainerId: number) {
     },
     onError: (error) => {
       enqueueSnackbar(getErrorMessage(error), { variant: "error" });
+    },
+  });
+}
+
+export function useTransferTrainerMembers(trainerId: number) {
+  const queryClient = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
+
+  return useMutation({
+    mutationFn: (payload: TransferMembersDTO) =>
+      transferTrainerMembers(trainerId, payload),
+    onSuccess: (_, vars) => {
+      enqueueSnackbar("Cartera transferida correctamente", {
+        variant: "success",
+       // persist: true,
+      });
+      queryClient.invalidateQueries({ queryKey: ["trainers"] });
+      queryClient.invalidateQueries({ queryKey: ["trainers", trainerId] });
+      queryClient.invalidateQueries({ queryKey: ["trainers", vars.to_trainer_id] });
+    },
+    onError: (error: unknown) => {
+      const message = getErrorMessage(error, "No se pudo transferir la cartera");
+      enqueueSnackbar(message, { variant: "error", persist: true });
     },
   });
 }

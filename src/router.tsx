@@ -16,6 +16,9 @@ import { EmployeeFormPage } from "./modules/employees/pages/EmployeeFormPage";
 import { EmployeeDetailPage } from "./modules/employees/pages/EmployeeDetailPage";
 import { TrainersListPage } from './modules/trainers/pages/TrainersListPage';
 import { TrainerDetailPage } from './modules/trainers/pages/TrainerDetailPage';
+import { MembershipsListPage } from "./modules/membership/pages/MembershipsListPage";
+import { MembershipPlanFormPage } from "./modules/membership/pages/MembershipPlanFormPage";
+import { MembershipDetailPage } from "./modules/membership/pages/MembershipDetailPage";
 
 
 export const router = createBrowserRouter([
@@ -64,17 +67,23 @@ export const router = createBrowserRouter([
             {
             path: "/employees/:employeeId/edit",
             element: <EmployeeFormPage />,
-          }
+          },
+            //memberships
+            {path: "/memberships", element: <MembershipsListPage />},
+            { path: "/membership-plans/new", element: <MembershipPlanFormPage /> },
+              { path: "/membership-plans/:planId/edit", element: <MembershipPlanFormPage /> },
+              { path: "/memberships", element: <MembershipsListPage /> },
+              { path: "/memberships/:membershipId", element: <MembershipDetailPage /> },
+            
             ],
           },
           {
-               // Trainers: listado/detalle visible para ADMIN y RECEPTIONIST
-            // (por ejemplo, para asignar entrenador a un socio). Ajusta
-            // si el enunciado/backend restringe distinto.
+
             element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
             children: [
               { path: "/trainers", element: <TrainersListPage /> },
               { path: "/trainers/:trainerId", element: <TrainerDetailPage /> },
+            //  { path: "trainers/:trainerId/transfer", element: <TrainerDetailPage /> }, 
             ],
           },  
 
