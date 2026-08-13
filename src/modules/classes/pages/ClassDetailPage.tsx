@@ -234,6 +234,10 @@ export function ClassDetailPage() {
           Sesiones programadas
         </Typography>
 
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Cada tarjeta representa una fecha concreta de esta clase. Haz clic en una sesión para ver su lista de inscritos y la cola de espera.
+        </Typography>
+
         <Stack spacing={1.5}>
           {(sessionsData?.content ?? []).length === 0 ? (
             <Typography variant="body2" color="text.secondary">
@@ -241,13 +245,36 @@ export function ClassDetailPage() {
             </Typography>
           ) : (
             (sessionsData?.content ?? []).map((session) => (
-              <Paper key={session.class_session_id} variant="outlined" sx={{ p: 1.5, cursor: "pointer" }} onClick={() => navigate(`/classes/${classId}/sessions/${session.class_session_id}`)}>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {session.date} · {session.start_time}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Cupo: {session.seats_available ?? 0} disponibles · Estado: {session.status ?? "-"}
-                </Typography>
+              <Paper
+                key={session.class_session_id}
+                variant="outlined"
+                sx={{
+                  p: 1.5,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  "&:hover": { boxShadow: 2, borderColor: "primary.main" },
+                }}
+                onClick={() => navigate(`/classes/${classId}/sessions/${session.class_session_id}`)}
+              >
+                <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", sm: "center" }} spacing={1}>
+                  <Box>
+                    <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                      {session.date} · {session.start_time}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {session.status ? `Estado: ${session.status}` : "Estado: sin definir"}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ textAlign: { xs: "left", sm: "right" } }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: (session.seats_available ?? 0) > 0 ? "success.main" : "warning.main" }}>
+                      {session.seats_available ?? 0} cupos disponibles
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Haz clic para ver inscritos
+                    </Typography>
+                  </Box>
+                </Stack>
               </Paper>
             ))
           )}

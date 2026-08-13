@@ -16,6 +16,23 @@ import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useClassSession, useClassSessionEnrollments, useClassSessionWaitlist, useEnrollMemberInClassSession, useJoinWaitlist } from "@/modules/classes/hooks";
 import { useMembers } from "@/modules/members/hooks";
 
+const enrollmentStatusLabels: Record<string, string> = {
+  ENROLLED: "Inscrito",
+  CANCELLED: "Cancelado",
+  WAITING: "En espera",
+  NOTIFIED: "Notificado",
+  CONFIRMED: "Confirmado",
+};
+
+function getMemberDisplayName(memberId: number, memberMap: Map<number, { person: { full_name: string; document_number: string } }>) {
+  const member = memberMap.get(memberId);
+  if (!member) {
+    return `Socio #${memberId}`;
+  }
+
+  return `${member.person.full_name} (${member.person.document_number})`;
+}
+
 export function ClassSessionDetailPage() {
   const navigate = useNavigate();
   const { classId, sessionId } = useParams();
@@ -26,8 +43,12 @@ export function ClassSessionDetailPage() {
   const enrollMutation = useEnrollMemberInClassSession(sessionNumber);
   const waitlistMutation = useJoinWaitlist(sessionNumber);
   const [memberId, setMemberId] = useState<number | "">("");
-  const { data: membersData } = useMembers({ page: 0, size: 100, status: "ACTIVE" });
+  const { data: membersData } = useMembers({ page: 0, size: 500, status: "ACTIVE" });
 
+  const memberMap = useMemo(
+    () => new Map((membersData?.content ?? []).map((member) => [member.member_id, member])),
+    [membersData]
+  );
   const memberOptions = useMemo(() => membersData?.content ?? [], [membersData]);
   const enrolledMemberIds = useMemo(
     () => new Set((enrollments?.content ?? []).filter((entry) => entry.status !== "CANCELLED").map((entry) => entry.member_id)),
@@ -83,8 +104,11 @@ export function ClassSessionDetailPage() {
         Volver a la clase
       </Button>
 
-      <Typography variant="h4" sx={{ mb: 2 }}>
+      <Typography variant="h4" sx={{ mb: 1 }}>
         Sesión {session.date}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Esta es una fecha concreta de la clase. Los socios se inscriben por sesión, no por la clase base.
       </Typography>
 
       <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
@@ -114,44 +138,46 @@ export function ClassSessionDetailPage() {
 
       <Paper sx={{ p: { xs: 2, sm: 3 } }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
-          Inscribir socio
+          Acciones de la sesión
         </Typography>
 
-        <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2 }}>
-          <TextField
-            select
-            label="Socio"
-            value={memberId}
-            onChange={(e) => setMemberId(e.target.value === "" ? "" : Number(e.target.value))}
-            sx={{ minWidth: 260 }}
-            error={!!memberValidationMessage}
-            helperText={memberValidationMessage || " "}
-          >
-            <MenuItem value="">Seleccionar</MenuItem>
-            {memberOptions.map((member) => (
-              <MenuItem key={member.member_id} value={member.member_id}>
-                {member.person.full_name} ({member.person.document_number})
-              </MenuItem>
-            ))}
-          </TextField>
+        <Paper variant="outlined" sx={{ p: 2, mb: 3, backgroundColor: "rgba(0,0,0,0.015)" }}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems={{ xs: "stretch", md: "center" }}>
+            <TextField
+              select
+              label="Socio"
+              value={memberId}
+              onChange={(e) => setMemberId(e.target.value === "" ? "" : Number(e.target.value))}
+              sx={{ minWidth: 260, flex: 1 }}
+              error={!!memberValidationMessage}
+              helperText={memberValidationMessage || "Seleccione un socio para inscribirlo o ponerlo en espera."}
+            >
+              <MenuItem value="">Seleccionar</MenuItem>
+              {memberOptions.map((member) => (
+                <MenuItem key={member.member_id} value={member.member_id}>
+                  {member.person.full_name} ({member.person.document_number})
+                </MenuItem>
+              ))}
+            </TextField>
 
-          <Button
-            variant="contained"
-            onClick={handleEnroll}
-            disabled={!memberId || Boolean(memberValidationMessage) || enrollMutation.isPending}
-          >
-            {enrollMutation.isPending ? "Inscribiendo..." : "Inscribir"}
-          </Button>
+            <Button
+              variant="contained"
+              onClick={handleEnroll}
+              disabled={!memberId || Boolean(memberValidationMessage) || enrollMutation.isPending}
+            >
+              {enrollMutation.isPending ? "Inscribiendo..." : "Inscribir a la sesión"}
+            </Button>
 
-          <Button
-            variant="outlined"
-            color="warning"
-            onClick={handleWaitlist}
-            disabled={!memberId || Boolean(memberValidationMessage) || waitlistMutation.isPending}
-          >
-            {waitlistMutation.isPending ? "Agregando..." : "Lista de espera"}
-          </Button>
-        </Stack>
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={handleWaitlist}
+              disabled={!memberId || Boolean(memberValidationMessage) || waitlistMutation.isPending}
+            >
+              {waitlistMutation.isPending ? "Agregando..." : "Agregar a lista de espera"}
+            </Button>
+          </Stack>
+        </Paper>
 
         <Divider sx={{ my: 3 }} />
 
@@ -162,12 +188,16 @@ export function ClassSessionDetailPage() {
             </Typography>
             <Stack spacing={1}>
               {(enrollments?.content ?? []).length === 0 ? (
-                <Typography variant="body2" color="text.secondary">No hay inscritos.</Typography>
+                <Typography variant="body2" color="text.secondary">No hay socios inscritos en esta sesión.</Typography>
               ) : (
                 (enrollments?.content ?? []).map((entry) => (
                   <Paper key={entry.class_enrollment_id} variant="outlined" sx={{ p: 1.5 }}>
-                    <Typography variant="body2">Miembro #{entry.member_id}</Typography>
-                    <Typography variant="caption" color="text.secondary">Status: {entry.status ?? "-"}</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {getMemberDisplayName(entry.member_id, memberMap)}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Estado: {enrollmentStatusLabels[entry.status ?? ""] ?? entry.status ?? "-"}
+                    </Typography>
                   </Paper>
                 ))
               )}
@@ -180,12 +210,16 @@ export function ClassSessionDetailPage() {
             </Typography>
             <Stack spacing={1}>
               {(waitlist?.content ?? []).length === 0 ? (
-                <Typography variant="body2" color="text.secondary">Sin espera.</Typography>
+                <Typography variant="body2" color="text.secondary">No hay personas en espera para esta sesión.</Typography>
               ) : (
                 (waitlist?.content ?? []).map((entry) => (
                   <Paper key={entry.waitlist_entry_id} variant="outlined" sx={{ p: 1.5 }}>
-                    <Typography variant="body2">Miembro #{entry.member_id}</Typography>
-                    <Typography variant="caption" color="text.secondary">Status: {entry.status ?? "WAITING"}</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {getMemberDisplayName(entry.member_id, memberMap)}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Estado: {enrollmentStatusLabels[entry.status ?? ""] ?? entry.status ?? "En espera"}
+                    </Typography>
                   </Paper>
                 ))
               )}
