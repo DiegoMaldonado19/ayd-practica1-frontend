@@ -22,6 +22,10 @@ import { MembershipDetailPage } from "@/modules/membership/pages/MembershipDetai
 import { VisitsPage } from "@/modules/access/pages/VisitsPage";
 import { GuestPassesPage } from "@/modules/access/pages/GuestPassesPage";
 import { MembershipPlansListPage } from "./modules/membership/pages/MembershipPlansListPages";
+import { ClassesListPage } from "@/modules/classes/pages/ClassesListPage";
+import { ClassFormPage } from "@/modules/classes/pages/ClassFormPage";
+import { ClassDetailPage } from "@/modules/classes/pages/ClassDetailPage";
+import { ClassSessionDetailPage } from "@/modules/classes/pages/ClassSessionDetailPage";
 
 export const router = createBrowserRouter([
   {
@@ -81,6 +85,16 @@ export const router = createBrowserRouter([
               { path: "/memberships", element: <MembershipsListPage /> },
               { path: "/memberships/:membershipId", element: <MembershipDetailPage /> },
               { path: "/membership-plans", element: <MembershipPlansListPage /> }
+            ],
+          },
+          {
+            path: "/classes",
+            children: [
+              { index: true, element: <ClassesListPage /> },
+              { path: "new", element: <ClassFormPage /> },
+              { path: ":classId", element: <ClassDetailPage /> },
+              { path: ":classId/edit", element: <ClassFormPage /> },
+              { path: ":classId/sessions/:sessionId", element: <ClassSessionDetailPage /> },
             ],
           },
           {
