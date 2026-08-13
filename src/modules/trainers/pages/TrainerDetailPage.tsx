@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useTrainer, useUpdateTrainerLoad, useReplaceSpecialties } from "@/modules/trainers/hooks";
-import type { Specialty } from "@/modules/trainers/types";
+import type { Specialty, Trainer } from "@/modules/trainers/types";
 
 const ALL_SPECIALTIES: Specialty[] = ["WEIGHT_LOSS", "MUSCLE_GAIN", "REHABILITATION", "FUNCTIONAL", "CARDIO"];
 
@@ -26,24 +26,10 @@ const specialtyLabel: Record<Specialty, string> = {
   CARDIO: "Cardio",
 };
 
+// 1. COMPONENTE CONTENEDOR: Solo maneja la petición y los estados de carga
 export function TrainerDetailPage() {
-  const navigate = useNavigate();
   const { trainerId } = useParams();
   const { data: trainer, isLoading, isError } = useTrainer(Number(trainerId));
-  const updateLoad = useUpdateTrainerLoad(Number(trainerId));
-  const replaceSpecialties = useReplaceSpecialties(Number(trainerId));
-
-  const [maxLoad, setMaxLoad] = useState<number>(20);
-  const [bio, setBio] = useState<string>("");
-  const [specialties, setSpecialties] = useState<Specialty[]>([]);
-
-  useEffect(() => {
-    if (trainer) {
-      setMaxLoad(trainer.max_member_load);
-      setBio(trainer.bio || "");
-      setSpecialties(trainer.specialties);
-    }
-  }, [trainer]);
 
   if (isLoading) {
     return (
@@ -60,6 +46,22 @@ export function TrainerDetailPage() {
       </Box>
     );
   }
+
+  // Cuando ya tenemos los datos seguros, montamos el contenido
+  return <TrainerDetailContent trainer={trainer} trainerId={Number(trainerId)} />;
+}
+
+// 2. COMPONENTE DE CONTENIDO: Inicializa sus estados directamente (sin useEffect)
+// Nota: Puedes tipar 'trainer' con la interfaz correcta si la tienes exportada (ej. trainer: Trainer)
+function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; trainerId: number }) {
+  const navigate = useNavigate();
+  const updateLoad = useUpdateTrainerLoad(trainerId);
+  const replaceSpecialties = useReplaceSpecialties(trainerId);
+
+  // Inicialización directa: Al montarse este componente, 'trainer' ya trae datos
+  const [maxLoad, setMaxLoad] = useState<number>(trainer.max_member_load);
+  const [bio, setBio] = useState<string>(trainer.bio || "");
+  const [specialties, setSpecialties] = useState<Specialty[]>(trainer.specialties);
 
   const loadChanged = maxLoad !== trainer.max_member_load;
   const bioChanged = bio !== (trainer.bio || "");

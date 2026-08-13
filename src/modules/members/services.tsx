@@ -5,6 +5,7 @@ import type {
   CreateMemberDTO,
   UpdateMemberDTO,
   MemberListParams,
+  MemberStatus,
 } from "@/modules/members/types";
 
 export async function getMembers(

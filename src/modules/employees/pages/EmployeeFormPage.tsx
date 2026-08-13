@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form"; 
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { ArrowBack, Save } from "@mui/icons-material";
@@ -76,7 +76,6 @@ export function EmployeeFormPage() {
     control,
     handleSubmit,
     reset,
-    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: yupResolver(schema),
@@ -97,7 +96,11 @@ export function EmployeeFormPage() {
     },
   });
 
-  const position = watch("position");
+  // <-- USAMOS useWatch PASÁNDOLE EL CONTROL Y EL NOMBRE DEL CAMPO
+  const position = useWatch({
+    control,
+    name: "position",
+  });
   const isTrainer = position === "TRAINER";
 
   useEffect(() => {
