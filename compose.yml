@@ -2,13 +2,14 @@ name: fitness-app-frontend
 
 services:
   frontend:
-    image: node:24-alpine
+    image: djmaldonado19/fitness-app-frontend:latest
     container_name: fitness_frontend
     restart: unless-stopped
     working_dir: /app
     command: sh -c "[ -x node_modules/.bin/vite ] || npm ci; exec npm run dev -- --host 0.0.0.0"
     environment:
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://127.0.0.1:8080}
+      VITE_USE_POLLING: "true"
     volumes:
       - .:/app
       # Named volume: an anonymous one is discarded whenever Compose recreates the
