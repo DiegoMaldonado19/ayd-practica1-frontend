@@ -1,5 +1,3 @@
-// src/modules/members/services.ts
-
 import { apiClient } from "@/api/client";
 import type { Page } from "@/api/types";
 import type {
@@ -7,6 +5,7 @@ import type {
   CreateMemberDTO,
   UpdateMemberDTO,
   MemberListParams,
+  MemberStatus,
 } from "@/modules/members/types";
 
 export async function getMembers(
@@ -23,9 +22,6 @@ export async function getMemberById(memberId: number): Promise<Member> {
   return data;
 }
 
-// Confirmado con test script real de Postman ("Alta con documento
-// repetido"): si el documento ya pertenece a alguien -> 409
-// DOCUMENT_ALREADY_REGISTERED.
 export async function createMember(payload: CreateMemberDTO): Promise<Member> {
   const { data } = await apiClient.post<Member>("/members", payload);
   return data;
@@ -39,10 +35,9 @@ export async function updateMember(
   return data;
 }
 
-// PATCH /members/{id}/status — baja lógica o reactivación del expediente.
 export async function updateMemberStatus(
   memberId: number,
-  status: "ACTIVE" | "INACTIVE" | "WITHDRAWN"
+  status: MemberStatus
 ): Promise<Member> {
   const { data } = await apiClient.patch<Member>(`/members/${memberId}/status`, {
     status,

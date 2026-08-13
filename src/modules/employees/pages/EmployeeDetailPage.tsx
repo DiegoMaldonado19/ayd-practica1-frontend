@@ -7,42 +7,31 @@ import {
   Chip,
   Button,
   CircularProgress,
-  Divider,
   Stack,
   Menu,
   MenuItem,
 } from "@mui/material";
 import { ArrowBack, Edit, MoreVert } from "@mui/icons-material";
 import { useState } from "react";
-import { useMember, useUpdateMemberStatus } from "@/modules/members/hooks";
-import type { MemberStatus } from "@/modules/members/types";
+import { useEmployee, useUpdateEmployeeStatus } from "@/modules/employees/hooks";
+import type { EmployeeStatus } from "@/modules/employees/types";
 
-const statusLabel: Record<MemberStatus, string> = {
+const statusLabel: Record<EmployeeStatus, string> = {
   ACTIVE: "Activo",
-  INACTIVE: "Inactivo",
-  WITHDRAWN: "Retirado",
+  SUSPENDED: "Suspendido",
+  TERMINATED: "Terminado",
 };
 
-const statusColor: Record<MemberStatus, "success" | "default" | "error"> = {
+const statusColor: Record<EmployeeStatus, "success" | "warning" | "error"> = {
   ACTIVE: "success",
-  INACTIVE: "default",
-  WITHDRAWN: "error",
+  SUSPENDED: "warning",
+  TERMINATED: "error",
 };
 
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null | undefined;
-}) {
+function Field({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <Box>
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        sx={{ display: "block", mb: 0.5 }}
-      >
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
         {label}
       </Typography>
       <Typography variant="body1" sx={{ fontWeight: 500 }}>
@@ -52,42 +41,37 @@ function Field({
   );
 }
 
-export function MemberDetailPage() {
+export function EmployeeDetailPage() {
   const navigate = useNavigate();
-  const { memberId } = useParams();
-  const { data: member, isLoading, isError } = useMember(Number(memberId));
-  const updateStatus = useUpdateMemberStatus(Number(memberId));
+  const { employeeId } = useParams();
+  const { data: employee, isLoading, isError } = useEmployee(Number(employeeId));
+  const updateStatus = useUpdateEmployeeStatus(Number(employeeId));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   if (isLoading) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="60vh"
-      >
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
         <CircularProgress />
       </Box>
     );
   }
 
-  if (isError || !member) {
+  if (isError || !employee) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography color="error">No se pudo cargar el socio.</Typography>
+        <Typography color="error">No se pudo cargar el empleado.</Typography>
       </Box>
     );
   }
 
-  const handleStatusChange = (newStatus: MemberStatus) => {
+  const handleStatusChange = (newStatus: EmployeeStatus) => {
     updateStatus.mutate(newStatus);
     setAnchorEl(null);
   };
 
-  const allStatuses: MemberStatus[] = ["ACTIVE", "INACTIVE", "WITHDRAWN"];
+  const allStatuses: EmployeeStatus[] = ["ACTIVE", "SUSPENDED", "TERMINATED"];
   const availableStatuses = allStatuses.filter(
-    (status) => status !== member.status
+    (status) => status !== employee.status
   );
 
   return (
@@ -109,32 +93,39 @@ export function MemberDetailPage() {
         <Box>
           <Button
             startIcon={<ArrowBack />}
-            onClick={() => navigate("/members")}
+            onClick={() => navigate("/employees")}
             sx={{ mb: 1 }}
           >
             Regresar al listado
           </Button>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-            {member.person.full_name}
+            {employee.person.full_name}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Revisa la información del socio, actualiza sus datos o cambia su
-            estado.
+            Revisa la información del empleado, actualiza sus datos o cambia su estado.
           </Typography>
         </Box>
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+          {employee.trainer_id && (
+            <Button
+              variant="outlined"
+              onClick={() => navigate(`/trainers/${employee.trainer_id}`)}
+            >
+              Ver perfil de entrenador
+            </Button>
+          )}
           <Button
             variant="outlined"
             startIcon={<Edit />}
-            onClick={() => navigate(`/members/${memberId}/edit`)}
+            onClick={() => navigate(`/employees/${employeeId}/edit`)}
           >
             Editar
           </Button>
 
           <Button
             variant="outlined"
-            color={member.status === "ACTIVE" ? "error" : "success"}
+            color={employee.status === "ACTIVE" ? "error" : "success"}
             disabled={updateStatus.isPending || availableStatuses.length === 0}
             onClick={(e) => setAnchorEl(e.currentTarget)}
             endIcon={<MoreVert />}
@@ -153,9 +144,9 @@ export function MemberDetailPage() {
                 onClick={() => handleStatusChange(status)}
                 disabled={updateStatus.isPending}
               >
-                {status === "ACTIVE" && "Reactivar"}
-                {status === "INACTIVE" && "Suspender"}
-                {status === "WITHDRAWN" && "Dar de baja"}
+                {status === "ACTIVE" && "Reincorporar"}
+                {status === "SUSPENDED" && "Suspender"}
+                {status === "TERMINATED" && "Dar de baja"}
               </MenuItem>
             ))}
           </Menu>
@@ -172,67 +163,52 @@ export function MemberDetailPage() {
       >
         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Datos personales
+            Datos del empleado
           </Typography>
           <Chip
-            label={statusLabel[member.status]}
-            color={statusColor[member.status]}
+            label={statusLabel[employee.status]}
+            color={statusColor[employee.status]}
             size="small"
           />
         </Stack>
 
         <Grid container spacing={3}>
           <Grid item xs={12} sm={4}>
-            <Field label="Código de socio" value={member.member_code} />
+            <Field label="Código de empleado" value={employee.employee_code} />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Field label="Puesto" value={employee.position} />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Field label="Fecha de contratación" value={employee.hired_on} />
           </Grid>
           <Grid item xs={12} sm={4}>
             <Field
               label="Documento"
-              value={`${member.person.document_type} ${member.person.document_number}`}
+              value={`${employee.person.document_type} ${employee.person.document_number}`}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Fecha de ingreso" value={member.joined_on} />
+            <Field label="Correo" value={employee.person.email} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Correo" value={member.person.email} />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Field label="Teléfono" value={member.person.phone} />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Field label="Fecha de nacimiento" value={member.person.birth_date} />
+            <Field label="Teléfono" value={employee.person.phone} />
           </Grid>
           <Grid item xs={12}>
-            <Field label="Dirección" value={member.person.address} />
+            <Field label="Dirección" value={employee.person.address} />
           </Grid>
+          <Grid item xs={12} sm={4}>
+            <Field label="Fecha de nacimiento" value={employee.person.birth_date} />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Field label="Género" value={employee.person.gender} />
+          </Grid>
+          {employee.terminated_on && (
+            <Grid item xs={12} sm={4}>
+              <Field label="Fecha de baja" value={employee.terminated_on} />
+            </Grid>
+          )}
         </Grid>
-
-        <Divider sx={{ my: 3 }} />
-
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-          Contacto de emergencia
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <Field label="Nombre" value={member.emergency_contact_name} />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Field label="Teléfono" value={member.emergency_contact_phone} />
-          </Grid>
-        </Grid>
-
-        {member.notes && (
-          <>
-            <Divider sx={{ my: 3 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-              Notas
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {member.notes}
-            </Typography>
-          </>
-        )}
       </Paper>
     </Box>
   );
