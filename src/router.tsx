@@ -12,14 +12,16 @@ import { MembersListPage } from "@/modules/members/pages/MembersListPage";
 import { MemberFormPage } from "@/modules/members/pages/MemberFormPage";
 import { MemberDetailPage } from "@/modules/members/pages/MemberDetailPage";
 import { EmployeesListPage } from "@/modules/employees/pages/EmployeesListPage";
-import { EmployeeFormPage } from "./modules/employees/pages/EmployeeFormPage";
-import { EmployeeDetailPage } from "./modules/employees/pages/EmployeeDetailPage";
-import { TrainersListPage } from './modules/trainers/pages/TrainersListPage';
-import { TrainerDetailPage } from './modules/trainers/pages/TrainerDetailPage';
-import { MembershipsListPage } from "./modules/membership/pages/MembershipsListPage";
-import { MembershipPlanFormPage } from "./modules/membership/pages/MembershipPlanFormPage";
-import { MembershipDetailPage } from "./modules/membership/pages/MembershipDetailPage";
-
+import { EmployeeFormPage } from "@/modules/employees/pages/EmployeeFormPage";
+import { EmployeeDetailPage } from "@/modules/employees/pages/EmployeeDetailPage";
+import { TrainersListPage } from "@/modules/trainers/pages/TrainersListPage";
+import { TrainerDetailPage } from "@/modules/trainers/pages/TrainerDetailPage";
+import { MembershipsListPage } from "@/modules/membership/pages/MembershipsListPage";
+import { MembershipPlanFormPage } from "@/modules/membership/pages/MembershipPlanFormPage";
+import { MembershipDetailPage } from "@/modules/membership/pages/MembershipDetailPage";
+import { VisitsPage } from "@/modules/access/pages/VisitsPage";
+import { GuestPassesPage } from "@/modules/access/pages/GuestPassesPage";
+import { MembershipPlansListPage } from "./modules/membership/pages/MembershipPlansListPages";
 
 export const router = createBrowserRouter([
   {
@@ -43,50 +45,52 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: "/", element: <DashboardPage /> },
+        
+          { path: "/dashboard", element: <DashboardPage /> },
           { path: "/account/security", element: <SecuritySettingsPage /> },
+
           {
-            // OJO: confirma en src/modules/auth/types.ts que el Role type
-            // usa exactamente estos strings ("ADMIN", "RECEPTIONIST").
             element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
             children: [
               { path: "/members", element: <MembersListPage /> },
               { path: "/members/new", element: <MemberFormPage /> },
               { path: "/members/:memberId", element: <MemberDetailPage /> },
               { path: "/members/:memberId/edit", element: <MemberFormPage /> },
+
+              {
+                path: "/access",
+                children: [
+                  { index: true, element: <Navigate to="visits" replace /> },
+                  { path: "visits", element: <VisitsPage /> },
+                  { path: "guest-passes", element: <GuestPassesPage /> },
+                ],
+              },
             ],
           },
           {
-            // Employees: solo ADMIN da de alta/gestiona personal, según
-            // FRONTEND_BACKEND_OVERVIEW.md ("Solo el administrador puede
-            // usarlo"). Verifícalo también en SecurityConfig.java del backend.
             element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
             children: [
               { path: "/employees", element: <EmployeesListPage /> },
-             { path: "/employees/new", element: <EmployeeFormPage /> },
-            { path: "/employees/:employeeId", element: <EmployeeDetailPage /> },
-            {
-            path: "/employees/:employeeId/edit",
-            element: <EmployeeFormPage />,
-          },
-            //memberships
-            {path: "/memberships", element: <MembershipsListPage />},
-            { path: "/membership-plans/new", element: <MembershipPlanFormPage /> },
+              { path: "/employees/new", element: <EmployeeFormPage /> },
+              { path: "/employees/:employeeId", element: <EmployeeDetailPage /> },
+              { path: "/employees/:employeeId/edit", element: <EmployeeFormPage /> },
+
+              // memberships 
+              { path: "/membership-plans/new", element: <MembershipPlanFormPage /> },
               { path: "/membership-plans/:planId/edit", element: <MembershipPlanFormPage /> },
               { path: "/memberships", element: <MembershipsListPage /> },
               { path: "/memberships/:membershipId", element: <MembershipDetailPage /> },
-            
+              { path: "/membership-plans", element: <MembershipPlansListPage /> }
             ],
           },
           {
-
             element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
             children: [
               { path: "/trainers", element: <TrainersListPage /> },
               { path: "/trainers/:trainerId", element: <TrainerDetailPage /> },
-            //  { path: "trainers/:trainerId/transfer", element: <TrainerDetailPage /> }, 
+              // { path: "/trainers/:trainerId/transfer", element: <TrainerDetailPage /> }, // TODO
             ],
-          },  
-
+          },
         ],
       },
     ],

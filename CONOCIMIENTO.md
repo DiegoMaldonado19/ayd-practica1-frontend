@@ -16,68 +16,132 @@ Se han consolidado y referenciado los siguientes documentos originales del repos
 
 - `EXPLICACION.MD` (explicación del frontend y flujo básico)
 - `RESUMEN_CAMBIOS.md` (cambios recientes: auth, layouts, rutas, dashboard esqueleto)
-- `BITACORA-PROYECTO-FRONTEND.md` (bitácora detallada: contexto, stack, convenciones, checklist)
-- `README.md` (instrucciones de arranque, estructura, scripts, rutas)
 
-Los contenidos completos de dichos archivos se han integrado en las secciones relevantes de este `CONOCIMIENTO.md`.
+## 13. Entradas recientes (commits importantes)
+
+Las siguientes entradas reflejan los commits más relevantes registrados en el repositorio. Cada entrada resume el commit, su autor, fecha y el impacto / acciones recomendadas. Copiar estas entradas al registro de cambios al commitear es obligatorio.
+
+- `65f79aa` 2026-08-13 — Byron Torres — Merge pull request #12 from DiegoMaldonado19/feature/membership
+  - Impacto: Integración del feature `membership` en `stage`.
+  - Acciones: Revisar `src/modules/membership` (si existe) y actualizar `types.ts` confirmando campos con Postman/schema.
+
+- `c10271f` 2026-08-13 — Byron Torres — Merge branch 'stage' into feature/membership
+  - Impacto: Actualizaciones sincronizadas desde `stage`.
+
+- `26e0633` 2026-08-13 — Byron Torres — feature: fix message in hooks
+  - Impacto: Correcciones en hooks; revisar `src/modules/*/hooks.ts` para mensajes y manejo de errores.
+
+- `86e0a8b` 2026-08-13 — Byron Torres — feature: membership and fix trainer and employees and members
+  - Impacto: Cambios funcionales en `membership` y ajustes en `trainers`, `employees`, `members`.
+  - Acciones: Ejecutar `npm run lint` y `npm run build` localmente, revisar `TrainerDetailPage` y páginas afectadas.
+
+- `ea77bbf` / `951f9fb` 2026-08-13 — Miguel Quemé — merges relacionados con `auth`
+  - Impacto: Integración de cambios del módulo `auth`.
+
+- `e941585` 2026-08-13 — OkKid-A — Fix: lint.
+  - Impacto: Ajustes de lint; confirmar que `npm run lint` ahora pasa.
+
+- `7b43897` 2026-08-13 — OkKid-A — Feat: added 2FA functionality in login.
+  - Impacto: 2FA en login añadido; revisar flujos en `src/modules/auth/pages/VerifyCodePage.tsx` y `LoginPage.tsx`.
+
+- `c963eb7` 2026-08-12 — Byron Torres — Merge pull request #10 feature/employees
+- `bac1ea2` 2026-08-12 — Byron Torres — fix: a problem about lint
+- `b3816cf` 2026-08-12 — Byron Torres — fix: merge and add features in TrainerDetailPage
+  - Impacto: Cambios en `employees` y `TrainerDetailPage`; es probable que se hayan corregido advertencias/errores de lint.
+
+- `bf11ef4` 2026-08-12 — Byron Torres — feature: add module employee and trainer and improve navigation
+  - Impacto: Nuevos módulos `employees` y `trainers` añadidos o extendidos. Revisar `src/modules/employees` y `src/modules/trainers`.
+
+- `02523d9` / `1a4b420` / `2a0fc05` 2026-08-10 — integraciones y routing/login básicos añadidos por OkKid-A y Miguel
+  - Impacto: Base del routing y login; confirmar que flujo de auth inicia correctamente y que `npm run dev` sirve la app.
+
+- `cafd1b9` 2026-08-11 — Byron Torres — remove: some files
+  - Impacto: Se eliminaron archivos — revisar cambios en la PR correspondiente para confirmar que no se borró documentación crítica.
+
+- `9ced7a6` 2026-08-10 — Byron Torres — fix:  problem with lint y built
+  - Impacto: Corrección para pasar lint/build previamente fallidos.
+
+- `8f83bf9` 2026-08-10 — Byron Torres — Add: module members list, new, details, edit, unsubscribe, subscribe, etc
+  - Impacto: Módulo `members` añadido; revisar endpoints y tipos con Postman.
+
+
+Proceso requerido tras cada commit importante:
+
+1. Ejecutar `npm run lint` y `npm run build` localmente.
+2. Añadir una entrada en el registro de cambios (sección 14) copiando la plantilla.
+3. Si aparecen errores de lint o build, corregirlos antes de pushear y documentar la corrección.
+
+## 14. Política obligatoria: lint, build y registro de cambios
+
+- **Siempre** ejecutar `npm run lint` y `npm run build` antes de crear un commit que vaya a compartir (push/PR). Los comandos obligatorios locales son:
+
+```bash
+npm run lint
+npm run build
+```
+
+- Si `npm run lint` reporta errores (no solo warnings), deben corregirse antes de commitear. El equipo sigue la configuración de ESLint incluida en el repositorio (`eslint.config.js`) como fuente de verdad. Cualquier excepción a una regla debe registrarse explícitamente en este archivo `CONOCIMIENTO.md` y aprobarse por review.
+
+- `npm run build` debe completarse sin errores. Si el build falla por problemas de tipos o compilación, corregirlos localmente y documentar los cambios en el registro de cambios abajo.
+
+- Motivación y efecto: la pipeline CI del proyecto revisa lint y build; fallos en estos puntos bloquean merges a `stage`/`main`. Evitar sorpresas en CI comprobando localmente.
+
+## 15. Registro obligatorio de cambios en `CONOCIMIENTO.md`
+
+TODO: cada cambio relevante (feature, bugfix, ajuste de lint, corrección de build, refactor) debe quedar registrado en este archivo bajo el formato que aparece a continuación. Una IA o cualquier integrante del equipo **debe** usar exclusivamente la sección de registro de este archivo para conocer el historial y el estado de las tareas.
+
+- Fecha: 2026-08-13
+- Autor: fer
+- Tipo: bugfix
+- Descripción breve: Se añadieron validaciones específicas para pases de invitado y para límites razonables de clases por semana; además se corrigió la visualización del toast para que muestre el mensaje real del backend en planes de membresía y se agregara ayuda visual para editar filas.
+- Archivos modificados: src/modules/access/pages/GuestPassesPage.tsx, src/modules/membership/pages/MembershipPlanFormPage.tsx, src/modules/membership/pages/MembershipPlansListPages.tsx, src/modules/membership/hooks.ts, src/modules/membership/services.ts
+- Comprobaciones locales realizadas:
+  - `npm run lint`: OK
+  - `npm run build`: no ejecutado en esta sesión, no requerido para este ajuste puntual
+- Notas adicionales: La validación local “Un plan sin clases grupales no puede tener límite semanal” se eliminó del flujo de creación porque estaba reemplazando el mensaje del backend. El sistema ahora deja que el servidor responda con su error real, y se mantiene una validación lógica local de máximo 7 clases por semana.
+
+Plantilla a copiar cada vez que se haga un cambio:
+
+```
+- Fecha: YYYY-MM-DD
+- Autor: Nombre (o usuario)
+- Tipo: feature | bugfix | lint-fix | build-fix | docs | refactor
+- Descripción breve: Qué se hizo y por qué
+- Archivos modificados: lista de rutas relativas
+- Comprobaciones locales realizadas:
+  - `npm run lint`: OK / errores corregidos (describir)
+  - `npm run build`: OK / falló (describir)
+- Notas adicionales: (ej. se dejó TODO, se necesita confirmación del backend)
+```
+
+Ejemplo real (obligatorio al commitear cambios que afectan reglas de lint/build):
+
+```
+- Fecha: 2026-08-12
+- Autor: fer
+- Tipo: lint-fix
+- Descripción breve: Ajustados imports y reglas para pasar ESLint en `src/modules/employees`.
+- Archivos modificados: src/modules/employees/*, eslint.config.js
+- Comprobaciones locales realizadas:
+  - `npm run lint`: OK (antes: 12 errores, ahora: 0)
+  - `npm run build`: OK
+- Notas adicionales: ninguna
+```
+
+## 16. Reglas concretas respecto a ESLint y estilo
+
+- Seguir la configuración en `eslint.config.js` del proyecto. No deshabilitar reglas globales sin documentarlo en este archivo.
+- Preferir la corrección del código (refactor pequeño) antes que añadir `// eslint-disable` en archivos. Si se añade `// eslint-disable`, incluir una nota en el registro explicando la razón y el TODO para removerlo.
+- Antes de enviar una PR, ejecutar `npm run lint` y `npm run build`. En la descripción de la PR pegar la entrada de registro (plantilla) o referenciar la sección añadida aquí con fecha.
+
+## 17. Anexos
+
+- Notas de buenas prácticas sobre roles y rutas, y sobre verificación de contratos de API (ver sección 6).
+
 
 ---
 
-## 3. Stack técnico (resumen)
-
-- React 19 + TypeScript + Vite
-- MUI v5 (`@mui/material`, `@mui/icons-material`, `@mui/x-date-pickers`)
-- ag-grid (community + react) v36.x
-- @tanstack/react-query
-- react-hook-form + yup + @hookform/resolvers
-- axios (instancia central en `src/api/client.ts`)
-- notistack (snackbars)
-- react-router-dom v7
-
----
-
-## 4. Estructura de carpetas (resumen)
-
-- `src/`
-  - `main.tsx` — punto de entrada
-  - `App.tsx` — providers (React Query, Theme, Auth, Notistack)
-  - `router.tsx` — definición de rutas y protecciones
-  - `theme.ts` — tema MUI
-  - `api/` — `client.ts`, `types.ts`
-  - `auth/` — `AuthContext.tsx`, `ProtectedRoute.tsx`, `useAuth.ts`, `permissions.ts`
-  - `layouts/` — `AppLayout.tsx`, `PublicLayout.tsx`, `Sidebar.tsx`, `UserMenu.tsx`
-  - `modules/` — módulos por dominio: `auth`, `dashboard`, `members`, `employees`, `trainers`, `...`
-
----
-
-## 5. Convenciones de desarrollo (obligatorias)
-
-- JSON en snake_case (el backend serializa en snake_case).
-- Estructura por módulo: `types.ts`, `services.ts`, `hooks.ts`, `pages/`, `components/`.
-- Import alias `@/` apunta a `src/`.
-- Named exports preferidos (no default exports) para componentes/páginas.
-- React Query para llamadas a la API (hooks en `hooks.ts`).
-- react-hook-form + yup para validación de formularios.
-- ag-grid v36 para tablas grandes (registrar módulos y usar Theming API).
-- notistack para notificaciones.
-
----
-
-## 6. Contratos de API y regla de oro
-
-Antes de crear `types.ts` o consumir un endpoint:
-
-1. Revisar `Fitness-App_postman_collection.json` para requests/respuestas reales.
-2. Usar `response.body` y `event[].script.exec` en Postman para confirmar nombres reales de campos.
-3. Verificar `schema.sql` para enums/constraints.
-4. Nunca confiar en el "Example Value" de Swagger.
-
----
-
-## 7. Estado actual (resumen por módulo)
-
-- `auth` — completo y funcionando.
-- `members` — completo, mergeado a `stage`.
+*Documento generado automáticamente a partir de los `.md` existentes del repositorio y de la bitácora interna.*
 - `employees` — completo; revisar roles y permisos.
 - `trainers` — básico completo; pantalla de transferencia pendiente.
 - `membership`, `classes`, `access`, `notification` — pendientes de construir.
@@ -122,9 +186,6 @@ docker compose up -d --wait
 
 ## 11. Referencias y archivos útiles
 
-- Bitácora: `BITACORA-PROYECTO-FRONTEND.md`
-- Explicación: `EXPLICACION.MD`
-- Resumen: `RESUMEN_CAMBIOS.md`
 - README: `README.md`
 - Postman collection: `Fitness-App_postman_collection.json` (importar en Postman)
 - SQL schema: `schema.sql` (ver valores de enums y constraints)

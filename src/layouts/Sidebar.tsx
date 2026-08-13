@@ -47,7 +47,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Entrenadores", path: "/trainers", icon: <FitnessCenterIcon />, module: "trainers" },
   { label: "Planes", path: "/membership-plans", icon: <CreditCardIcon />, module: "membershipPlans" },
   { label: "Membresías", path: "/memberships", icon: <CreditCardIcon />, module: "memberships" },
-  { label: "Acceso", path: "/access", icon: <EventIcon />, module: "access" },
+  { label: "Acceso", path: "/access/visits", icon: <EventIcon />, module: "access" },
   { label: "Clases", path: "/classes", icon: <ClassIcon />, module: "classes" },
   { label: "Notificaciones", path: "/notifications", icon: <NotificationsIcon />, module: "notifications" },
   { label: "Reportes", path: "/reports", icon: <AssessmentIcon />, module: "reports" },
@@ -55,6 +55,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Nutrición", path: "/nutrition", icon: <RestaurantIcon />, module: "nutrition" },
   { label: "Entrenamiento", path: "/training", icon: <DirectionsRunIcon />, module: "training" },
 ];
+
 
 type SidebarProps = {
   mobileOpen: boolean;
