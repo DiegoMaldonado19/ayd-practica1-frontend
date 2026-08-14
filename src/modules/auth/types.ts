@@ -7,6 +7,11 @@ export type TwoFactorChannel = "EMAIL" | "SMS";
 export interface UserProfile {
   app_user_id: number;
   person_id: number;
+  // Requested from the backend team (/auth/me and the login response's `user` object),
+  // not yet confirmed shipped: null/undefined for every role except MEMBER. Frontend is
+  // built assuming it's present for a MEMBER; screens should still null-check it since
+  // the change may not have landed yet.
+  member_id?: number | null;
   username: string;
   full_name: string;
   email: string;

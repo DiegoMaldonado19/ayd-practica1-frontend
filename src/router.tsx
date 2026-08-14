@@ -27,6 +27,13 @@ import { ClassFormPage } from "@/modules/classes/pages/ClassFormPage";
 import { ClassDetailPage } from "@/modules/classes/pages/ClassDetailPage";
 import { ClassSessionDetailPage } from "@/modules/classes/pages/ClassSessionDetailPage";
 import { NotificationsPage } from "@/modules/notifications/pages/NotificationsPage";
+import { TrainingHomePage } from "@/modules/training/pages/TrainingHomePage";
+import { AssignmentsPage } from "@/modules/training/pages/AssignmentsPage";
+import { MyMembersPage } from "@/modules/training/pages/MyMembersPage";
+import { ExercisesPage } from "@/modules/training/pages/ExercisesPage";
+import { MemberTrainingPage } from "@/modules/training/pages/MemberTrainingPage";
+import { AlertsPage } from "@/modules/training/pages/AlertsPage";
+import { MyTrainingPage } from "@/modules/training/pages/MyTrainingPage";
 
 export const router = createBrowserRouter([
   {
@@ -109,6 +116,31 @@ export const router = createBrowserRouter([
           {
             path: "/notifications",
             element: <NotificationsPage />,
+          },
+
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER", "MEMBER"]} />,
+            children: [{ path: "/training", element: <TrainingHomePage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
+            children: [{ path: "/training/assignments", element: <AssignmentsPage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["TRAINER"]} />,
+            children: [{ path: "/training/my-members", element: <MyMembersPage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER"]} />,
+            children: [
+              { path: "/training/exercises", element: <ExercisesPage /> },
+              { path: "/training/members/:memberId", element: <MemberTrainingPage /> },
+              { path: "/training/alerts", element: <AlertsPage /> },
+            ],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["MEMBER"]} />,
+            children: [{ path: "/training/me", element: <MyTrainingPage /> }],
           },
         ],
       },
