@@ -38,6 +38,7 @@ import { NutritionHomePage } from "@/modules/nutrition/pages/NutritionHomePage";
 import { FoodsPage } from "@/modules/nutrition/pages/FoodsPage";
 import { MyNutritionPage } from "@/modules/nutrition/pages/MyNutritionPage";
 import { MemberNutritionPage } from "@/modules/nutrition/pages/MemberNutritionPage";
+import { ReportsPage } from "@/modules/reports/pages/ReportsPage";
 
 export const router = createBrowserRouter([
   {
@@ -162,6 +163,11 @@ export const router = createBrowserRouter([
           {
             element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER"]} />,
             children: [{ path: "/nutrition/members/:memberId", element: <MemberNutritionPage /> }],
+          },
+
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
+            children: [{ path: "/reports", element: <ReportsPage /> }],
           },
         ],
       },

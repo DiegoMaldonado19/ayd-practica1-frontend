@@ -8,6 +8,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { getErrorMessage } from "@/api/types";
 import { useCreateNote } from "../hooks";
 import type { TrainerNoteType } from "../types";
@@ -82,12 +83,10 @@ export function NoteFormDialog({ open, onClose, memberId }: NoteFormDialogProps)
             fullWidth
           />
 
-          <TextField
-            type="date"
+          <AppDatePicker
             label="Fecha de referencia (opcional)"
             value={referenceDate}
-            onChange={(e) => setReferenceDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
+            onChange={setReferenceDate}
             fullWidth
           />
 
