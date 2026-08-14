@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Badge,
   Box,
   Button,
   Chip,
@@ -16,9 +17,10 @@ import {
   Check as CheckIcon,
   Circle as CircleIcon,
   ErrorOutline as ErrorOutlineIcon,
-  Wifi as WifiIcon,
-  WifiOff as WifiOffIcon,
+  Notifications as NotificationsIcon,
 } from "@mui/icons-material";
+import { apiClient } from "@/api/client";
+import { getErrorMessage, type Page } from "@/api/types";
 
 const notificationTypeLabels: Record<string, string> = {
   SESSION_RESCHEDULED: "Sesión reprogramada",
@@ -46,7 +48,7 @@ type NotificationStatus = keyof typeof notificationStatusLabels;
 type NotificationType = keyof typeof notificationTypeLabels;
 
 type NotificationItem = {
-  id: number;
+  notificationId: number;
   title: string;
   message: string;
   type: NotificationType;
@@ -55,35 +57,56 @@ type NotificationItem = {
   channel: "IN_APP" | "EMAIL";
 };
 
-const seedNotifications: NotificationItem[] = [
-  {
-    id: 1,
-    title: "Sesión reprogramada",
-    message: "La sesión de Yoga matutino fue movida al viernes a las 7:30 AM.",
-    type: "SESSION_RESCHEDULED",
-    status: "SENT",
-    createdAt: "2026-08-13T08:30:00.000Z",
-    channel: "IN_APP",
-  },
-  {
-    id: 2,
-    title: "Lista de espera",
-    message: "Se te promocionó a la sesión de Spinning del próximo martes.",
-    type: "WAITLIST_PROMOTED",
-    status: "READ",
-    createdAt: "2026-08-12T15:15:00.000Z",
-    channel: "IN_APP",
-  },
-  {
-    id: 3,
-    title: "Membresía por vencer",
-    message: "Tu membresía vence en 5 días. Puedes renovarla desde recepción o desde tu cuenta.",
-    type: "MEMBERSHIP_EXPIRING",
-    status: "PENDING",
-    createdAt: "2026-08-11T09:00:00.000Z",
-    channel: "EMAIL",
-  },
-];
+type ApiNotification = {
+  notification_id?: number;
+  notificationId?: number;
+  notification_type?: string;
+  notificationType?: string;
+  type?: string;
+  title?: string;
+  message?: string;
+  body?: string;
+  status?: string;
+  channel?: string;
+  created_at?: string;
+  createdAt?: string;
+};
+
+function mapStatus(value?: string): NotificationStatus {
+  if (value === "READ") return "READ";
+  if (value === "FAILED") return "FAILED";
+  if (value === "PENDING") return "PENDING";
+  return "SENT";
+}
+
+function getNotificationType(value?: string): NotificationType {
+  if (value === "CLASS_CANCELLED") return "CLASS_CANCELLED";
+  if (value === "WAITLIST_PROMOTED") return "WAITLIST_PROMOTED";
+  if (value === "MEMBERSHIP_EXPIRING") return "MEMBERSHIP_EXPIRING";
+  if (value === "CHECK_IN") return "CHECK_IN";
+  return "SESSION_RESCHEDULED";
+}
+
+function normalizeNotification(raw: ApiNotification): NotificationItem {
+  const type = getNotificationType(raw.notification_type ?? raw.notificationType ?? raw.type);
+  const titles: Record<NotificationType, string> = {
+    SESSION_RESCHEDULED: "Sesión reprogramada",
+    CLASS_CANCELLED: "Clase cancelada",
+    WAITLIST_PROMOTED: "Promoción a lista de espera",
+    MEMBERSHIP_EXPIRING: "Membresía próxima a vencer",
+    CHECK_IN: "Ingreso registrado",
+  };
+
+  return {
+    notificationId: raw.notification_id ?? raw.notificationId ?? Date.now(),
+    title: raw.title ?? titles[type],
+    message: raw.message ?? raw.body ?? "Hay una actualización nueva en tu cuenta.",
+    type,
+    status: mapStatus(raw.status),
+    createdAt: raw.created_at ?? raw.createdAt ?? new Date().toISOString(),
+    channel: raw.channel === "EMAIL" ? "EMAIL" : "IN_APP",
+  };
+}
 
 function formatDate(dateString: string): string {
   const value = new Date(dateString);
@@ -96,124 +119,47 @@ function formatDate(dateString: string): string {
   }).format(value);
 }
 
-function buildNotificationFromEvent(payload: { type?: string; message?: string }): NotificationItem {
-  const now = new Date().toISOString();
-  const type = (payload.type as NotificationType) ?? "SESSION_RESCHEDULED";
-  const titles: Record<NotificationType, string> = {
-    SESSION_RESCHEDULED: "Sesión reprogramada",
-    CLASS_CANCELLED: "Clase cancelada",
-    WAITLIST_PROMOTED: "Promoción a lista de espera",
-    MEMBERSHIP_EXPIRING: "Membresía próxima a vencer",
-    CHECK_IN: "Ingreso registrado",
-  };
-
-  return {
-    id: Date.now() + Math.floor(Math.random() * 1000),
-    title: titles[type],
-    message: payload.message ?? "Hay una actualización nueva en tu cuenta.",
-    type,
-    status: "SENT",
-    createdAt: now,
-    channel: "IN_APP",
-  };
-}
-
 export function NotificationsPage() {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(seedNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [filter, setFilter] = useState<"ALL" | NotificationStatus>("ALL");
-  const [connected, setConnected] = useState(false);
-  const wsRef = useRef<WebSocket | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-    let heartbeat: number | undefined;
+    let cancelled = false;
 
-    const socket = new WebSocket("wss://echo.websocket.events");
-    wsRef.current = socket;
-
-    socket.onopen = () => {
-      if (!isMounted) return;
-      setConnected(true);
-
-      heartbeat = window.setInterval(() => {
-        if (socket.readyState === WebSocket.OPEN) {
-          const messageBank: Array<{ type: NotificationType; message: string }> = [
-            {
-              type: "SESSION_RESCHEDULED",
-              message: "Tu sesión de Yoga fue reprogramada para otro horario disponible.",
-            },
-            {
-              type: "WAITLIST_PROMOTED",
-              message: "Gracias a tu prioridad, ahora tienes un lugar reservado en la clase.",
-            },
-            {
-              type: "CLASS_CANCELLED",
-              message: "La clase de CrossFit programada para hoy fue cancelada por el entrenador.",
-            },
-            {
-              type: "MEMBERSHIP_EXPIRING",
-              message: "Tu membresía está por vencer. Revisa la renovación disponible.",
-            },
-          ];
-
-          const randomMessage = messageBank[Math.floor(Math.random() * messageBank.length)];
-          socket.send(
-            JSON.stringify({
-              type: "notification",
-              data: {
-                type: randomMessage.type,
-                message: randomMessage.message,
-              },
-            })
-          );
-        }
-      }, 15000);
-    };
-
-    socket.onmessage = (event) => {
-      if (!isMounted) return;
-
+    const loadNotifications = async () => {
       try {
-        const raw = JSON.parse(event.data) as
-          | { type?: string; data?: { type?: string; message?: string } }
-          | { type?: string; message?: string };
+        const { data } = await apiClient.get<Page<ApiNotification>>("/notifications", {
+          params: { page: 0, size: 20 },
+        });
 
-        const item: { type?: string; message?: string } | undefined =
-          "data" in raw && raw.data ? raw.data : "type" in raw || "message" in raw ? raw : undefined;
-
-        if (item && (item.type || item.message)) {
-          setNotifications((prev) => [buildNotificationFromEvent(item), ...prev].slice(0, 12));
+        if (!cancelled) {
+          setNotifications((data.content ?? []).map((item) => normalizeNotification(item)));
+          setError(null);
         }
-      } catch {
-        // Ignored: some websocket echo payloads are plain text and are not notification events.
+      } catch (err) {
+        if (!cancelled) {
+          setError(getErrorMessage(err, "No se pudo cargar la bandeja de notificaciones."));
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
-    socket.onclose = () => {
-      if (isMounted) {
-        setConnected(false);
-      }
-      if (heartbeat) {
-        window.clearInterval(heartbeat);
-      }
-    };
-
-    socket.onerror = () => {
-      if (isMounted) {
-        setConnected(false);
-      }
-    };
+    void loadNotifications();
 
     return () => {
-      isMounted = false;
-      if (heartbeat) {
-        window.clearInterval(heartbeat);
-      }
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+      cancelled = true;
     };
   }, []);
+
+  const pendingCount = useMemo(
+    () => notifications.filter((item) => item.status !== "READ").length,
+    [notifications],
+  );
 
   const filteredNotifications = useMemo(() => {
     if (filter === "ALL") return notifications;
@@ -230,17 +176,20 @@ export function NotificationsPage() {
     [notifications]
   );
 
-  const markAsRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status: "READ",
-            }
-          : item
-      )
-    );
+  const markAsRead = async (notificationId: number) => {
+    try {
+      await apiClient.patch(`/notifications/${notificationId}/status`, { status: "READ" });
+      setNotifications((prev) =>
+        prev.map((item) =>
+          item.notificationId === notificationId
+            ? { ...item, status: "READ" }
+            : item
+        )
+      );
+      setError(null);
+    } catch (err) {
+      setError(getErrorMessage(err, "No se pudo marcar la notificación como leída."));
+    }
   };
 
   return (
@@ -251,16 +200,18 @@ export function NotificationsPage() {
             Notificaciones
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Bandeja del usuario autenticado en tiempo real.
+            Bandeja del usuario autenticado con datos reales del backend.
           </Typography>
         </Box>
 
-        <Chip
-          icon={connected ? <WifiIcon /> : <WifiOffIcon />}
-          label={connected ? "Conexión en vivo" : "Sin conexión en vivo"}
-          color={connected ? "success" : "warning"}
-          variant="filled"
-        />
+        <Badge badgeContent={pendingCount || null} color="error" overlap="circular">
+          <Chip
+            icon={<NotificationsIcon />}
+            label={pendingCount > 0 ? `${pendingCount} pendientes` : "Sin pendientes"}
+            color={pendingCount > 0 ? "warning" : "default"}
+            variant="filled"
+          />
+        </Badge>
       </Stack>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -305,15 +256,21 @@ export function NotificationsPage() {
         </Stack>
       </Paper>
 
-      {!connected && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          El canal en tiempo real está desconectado. La bandeja sigue funcionando localmente y se volverá a sincronizar cuando la conexión vuelva.
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
         </Alert>
       )}
 
       <Paper>
         <List disablePadding>
-          {filteredNotifications.length === 0 ? (
+          {loading ? (
+            <ListItem sx={{ py: 3, justifyContent: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                Cargando notificaciones...
+              </Typography>
+            </ListItem>
+          ) : filteredNotifications.length === 0 ? (
             <ListItem sx={{ py: 3, justifyContent: "center" }}>
               <Typography variant="body2" color="text.secondary">
                 No hay notificaciones para este filtro.
@@ -321,7 +278,7 @@ export function NotificationsPage() {
             </ListItem>
           ) : (
             filteredNotifications.map((notification) => (
-              <ListItem key={notification.id} divider sx={{ alignItems: "flex-start", py: 2.5, px: 2.5 }}>
+              <ListItem key={notification.notificationId} divider sx={{ alignItems: "flex-start", py: 2.5, px: 2.5 }}>
                 <Box sx={{ mr: 2, mt: 0.5 }}>
                   {notification.status === "READ" ? (
                     <CheckIcon color="success" />
@@ -358,7 +315,7 @@ export function NotificationsPage() {
                 </Box>
 
                 {notification.status !== "READ" && (
-                  <IconButton onClick={() => markAsRead(notification.id)} size="small" sx={{ ml: 1 }} aria-label="Marcar como leída">
+                  <IconButton onClick={() => void markAsRead(notification.notificationId)} size="small" sx={{ ml: 1 }} aria-label="Marcar como leída">
                     <CheckIcon fontSize="small" />
                   </IconButton>
                 )}
