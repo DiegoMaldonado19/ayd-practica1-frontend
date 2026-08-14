@@ -8,6 +8,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { getErrorMessage } from "@/api/types";
 import { useCreateMeasurement, useUpdateMeasurement } from "../hooks";
 import type { ProgressMeasurement } from "../types";
@@ -76,15 +77,7 @@ export function MeasurementFormDialog({
       <DialogTitle>{isEdit ? "Corregir medición" : "Registrar medición"}</DialogTitle>
       <DialogContent>
         <Stack spacing={2.5} sx={{ mt: 1 }}>
-          <TextField
-            type="date"
-            label="Fecha"
-            value={measuredOn}
-            onChange={(e) => setMeasuredOn(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            required
-            fullWidth
-          />
+          <AppDatePicker label="Fecha" value={measuredOn} onChange={setMeasuredOn} required fullWidth />
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <TextField

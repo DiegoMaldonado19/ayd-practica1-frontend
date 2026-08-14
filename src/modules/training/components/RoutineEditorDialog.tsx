@@ -14,6 +14,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { getErrorMessage } from "@/api/types";
 import { useCreateRoutine, useExercises, useReplaceRoutine } from "../hooks";
 import type { Routine, RoutineExerciseItem, Weekday } from "../types";
@@ -132,12 +133,10 @@ export function RoutineEditorDialog({ open, onClose, memberId, routine }: Routin
             minRows={2}
             fullWidth
           />
-          <TextField
-            type="date"
+          <AppDatePicker
             label="Fecha de fin (opcional)"
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
+            onChange={setEndDate}
             sx={{ maxWidth: 240 }}
           />
 

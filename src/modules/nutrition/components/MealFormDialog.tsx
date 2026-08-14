@@ -13,6 +13,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { Delete } from "@mui/icons-material";
+import { AppDatePicker } from "@/components/AppDatePicker";
 import { getErrorMessage } from "@/api/types";
 import { useCreateMeal, useUpdateMeal } from "../hooks";
 import { FoodPicker } from "./FoodPicker";
@@ -95,13 +96,11 @@ export function MealFormDialog({ open, onClose, memberId, meal }: MealFormDialog
       <DialogTitle>{isEdit ? "Editar comida" : "Registrar comida"}</DialogTitle>
       <DialogContent>
         <Stack spacing={2.5} sx={{ mt: 1 }}>
-          <TextField
-            type="date"
+          <AppDatePicker
             label="Fecha"
             value={logDate}
-            onChange={(e) => setLogDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            inputProps={{ max: todayIso() }}
+            onChange={setLogDate}
+            maxDate={todayIso()}
             disabled={isEdit}
             helperText={isEdit ? "La fecha no se puede modificar" : undefined}
             fullWidth
