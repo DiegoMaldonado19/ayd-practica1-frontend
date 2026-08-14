@@ -29,9 +29,6 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only treat a 401 as "session expired" when the request actually carried
-    // a token — a bare 401 on a public endpoint (e.g. bad login credentials)
-    // must surface as a normal error for the form to display, not a redirect.
     const hadToken = Boolean(error.config?.headers?.Authorization);
     if (error.response?.status === 401 && hadToken) {
       clearAccessToken();

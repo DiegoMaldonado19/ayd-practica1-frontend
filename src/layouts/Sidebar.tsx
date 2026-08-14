@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
@@ -21,12 +23,12 @@ import {
   CreditCard as CreditCardIcon,
   Event as EventIcon,
   Class as ClassIcon,
-  Notifications as NotificationsIcon,
   Assessment as AssessmentIcon,
   Payment as PaymentIcon,
   Restaurant as RestaurantIcon,
   DirectionsRun as DirectionsRunIcon,
 } from "@mui/icons-material";
+import { apiClient } from "@/api/client";
 import { useAuth } from "@/auth/useAuth";
 import { canAccessModule, type ModuleKey} from "@/auth/permissions";
 
@@ -49,7 +51,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Membresías", path: "/memberships", icon: <CreditCardIcon />, module: "memberships" },
   { label: "Acceso", path: "/access/visits", icon: <EventIcon />, module: "access" },
   { label: "Clases", path: "/classes", icon: <ClassIcon />, module: "classes" },
-  { label: "Notificaciones", path: "/notifications", icon: <NotificationsIcon />, module: "notifications" },
+ // { label: "Notificaciones", path: "/notifications", icon: <NotificationsIcon />, module: "notifications" },
   { label: "Reportes", path: "/reports", icon: <AssessmentIcon />, module: "reports" },
   { label: "Pagos", path: "/payments", icon: <PaymentIcon />, module: "billing" },
   { label: "Nutrición", path: "/nutrition", icon: <RestaurantIcon />, module: "nutrition" },
@@ -68,6 +70,37 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const [pendingNotifications, setPendingNotifications] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let cancelled = false;
+
+    const loadPendingNotifications = async () => {
+      try {
+        const { data } = await apiClient.get("/notifications", {
+          params: { page: 0, size: 100 },
+        });
+
+        if (cancelled) return;
+
+        const notifications = Array.isArray(data?.content) ? data.content : [];
+        const count = notifications.filter((item: { status?: string }) => item.status !== "READ").length;
+        setPendingNotifications(count);
+      } catch {
+        if (!cancelled) {
+          setPendingNotifications(0);
+        }
+      }
+    };
+
+    void loadPendingNotifications();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const visibleItems = NAV_ITEMS.filter(
     (item) => user && canAccessModule(user.role, item.module)
@@ -179,7 +212,13 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
                     justifyContent: "center",
                   }}
                 >
-                  {item.icon}
+                  {item.path === "/notifications" && pendingNotifications > 0 ? (
+                    <Badge badgeContent={pendingNotifications} color="error" overlap="circular">
+                      {item.icon}
+                    </Badge>
+                  ) : (
+                    item.icon
+                  )}
                 </ListItemIcon>
                 {!collapsed && <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: 500 }} />}
               </ListItemButton>

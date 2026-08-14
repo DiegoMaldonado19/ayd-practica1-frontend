@@ -8,6 +8,7 @@ import Toolbar from "@mui/material/Toolbar";
 import { Menu as MenuIcon } from "@mui/icons-material";
 import { Sidebar, DRAWER_WIDTH, DRAWER_COLLAPSED_WIDTH } from "./Sidebar";
 import { UserMenu } from "./UserMenu";
+import { NotificationBell } from "@/modules/notifications/components/NotificationBell";
 
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -63,6 +64,7 @@ export function AppLayout() {
 
             <Box sx={{ flexGrow: 1 }} />
 
+            <NotificationBell />
             <UserMenu />
           </Toolbar>
         </AppBar>

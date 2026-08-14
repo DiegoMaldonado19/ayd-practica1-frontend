@@ -26,6 +26,7 @@ import { ClassesListPage } from "@/modules/classes/pages/ClassesListPage";
 import { ClassFormPage } from "@/modules/classes/pages/ClassFormPage";
 import { ClassDetailPage } from "@/modules/classes/pages/ClassDetailPage";
 import { ClassSessionDetailPage } from "@/modules/classes/pages/ClassSessionDetailPage";
+import { NotificationsPage } from "@/modules/notifications/pages/NotificationsPage";
 
 export const router = createBrowserRouter([
   {
@@ -104,6 +105,10 @@ export const router = createBrowserRouter([
               { path: "/trainers/:trainerId", element: <TrainerDetailPage /> },
               // { path: "/trainers/:trainerId/transfer", element: <TrainerDetailPage /> }, // TODO
             ],
+          },
+          {
+            path: "/notifications",
+            element: <NotificationsPage />,
           },
         ],
       },
