@@ -194,7 +194,7 @@ export function NotificationBell() {
         ),
       );
     } catch {
-      // ignore for now; backend will reject if not allowed
+     
     }
   };
 

@@ -26,6 +26,8 @@ import { ClassesListPage } from "@/modules/classes/pages/ClassesListPage";
 import { ClassFormPage } from "@/modules/classes/pages/ClassFormPage";
 import { ClassDetailPage } from "@/modules/classes/pages/ClassDetailPage";
 import { ClassSessionDetailPage } from "@/modules/classes/pages/ClassSessionDetailPage";
+import { PaymentsPage } from "@/modules/billing/pages/PaymentsPage";
+import { PromotionsPage } from "@/modules/billing/pages/PromotionsPage";
 import { NotificationsPage } from "@/modules/notifications/pages/NotificationsPage";
 
 export const router = createBrowserRouter([
@@ -104,6 +106,13 @@ export const router = createBrowserRouter([
               { path: "/trainers", element: <TrainersListPage /> },
               { path: "/trainers/:trainerId", element: <TrainerDetailPage /> },
               // { path: "/trainers/:trainerId/transfer", element: <TrainerDetailPage /> }, // TODO
+            ],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
+            children: [
+              { path: "/payments", element: <PaymentsPage /> },
+              { path: "/promotions", element: <PromotionsPage /> },
             ],
           },
           {
