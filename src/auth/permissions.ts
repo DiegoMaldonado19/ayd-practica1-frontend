@@ -28,7 +28,7 @@ export const MODULE_ACCESS = {
   access: ["ADMIN", "RECEPTIONIST"] as Role[],
   classes: ROLES,
   training: ["ADMIN", "TRAINER", "MEMBER"] as Role[],
-  nutrition: ["TRAINER", "MEMBER"] as Role[],
+  nutrition: ["ADMIN", "TRAINER", "MEMBER"] as Role[],
   notifications: ROLES,
   reports: ["ADMIN"] as Role[],
 } satisfies Record<string, Role[]>;

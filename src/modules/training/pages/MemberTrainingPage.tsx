@@ -78,15 +78,22 @@ export function MemberTrainingPage() {
 
   return (
     <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: { xs: 3, md: 4 }, maxWidth: 980, mx: "auto" }}>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 1 }}>
-        Regresar
-      </Button>
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-        {member.person.full_name}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Código: {member.member_code}
-      </Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+        <Box>
+          <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 1 }}>
+            Regresar
+          </Button>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+            {member.person.full_name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Código: {member.member_code}
+          </Typography>
+        </Box>
+        <Button variant="outlined" onClick={() => navigate(`/nutrition/members/${id}`)}>
+          Ver nutrición
+        </Button>
+      </Stack>
 
       <RoutinesSection memberId={id} canEdit={isTrainer} />
       <Divider sx={{ my: 3 }} />
