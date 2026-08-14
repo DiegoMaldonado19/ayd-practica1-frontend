@@ -34,6 +34,10 @@ import { ExercisesPage } from "@/modules/training/pages/ExercisesPage";
 import { MemberTrainingPage } from "@/modules/training/pages/MemberTrainingPage";
 import { AlertsPage } from "@/modules/training/pages/AlertsPage";
 import { MyTrainingPage } from "@/modules/training/pages/MyTrainingPage";
+import { NutritionHomePage } from "@/modules/nutrition/pages/NutritionHomePage";
+import { FoodsPage } from "@/modules/nutrition/pages/FoodsPage";
+import { MyNutritionPage } from "@/modules/nutrition/pages/MyNutritionPage";
+import { MemberNutritionPage } from "@/modules/nutrition/pages/MemberNutritionPage";
 
 export const router = createBrowserRouter([
   {
@@ -141,6 +145,23 @@ export const router = createBrowserRouter([
           {
             element: <ProtectedRoute allowedRoles={["MEMBER"]} />,
             children: [{ path: "/training/me", element: <MyTrainingPage /> }],
+          },
+
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER", "MEMBER"]} />,
+            children: [{ path: "/nutrition", element: <NutritionHomePage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER", "MEMBER"]} />,
+            children: [{ path: "/nutrition/foods", element: <FoodsPage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["MEMBER"]} />,
+            children: [{ path: "/nutrition/me", element: <MyNutritionPage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER"]} />,
+            children: [{ path: "/nutrition/members/:memberId", element: <MemberNutritionPage /> }],
           },
         ],
       },
