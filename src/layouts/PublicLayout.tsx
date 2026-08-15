@@ -9,8 +9,9 @@ export function PublicLayout() {
       alignItems="center"
       minHeight="100vh"
       sx={{ bgcolor: "grey.100", p: 2 }}
+      
     >
-      <Outlet />
+      <Outlet  />
     </Box>
   );
 }

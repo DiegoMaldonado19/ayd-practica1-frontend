@@ -8,6 +8,7 @@ import { ForgotPasswordPage } from "@/modules/auth/pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/modules/auth/pages/ResetPasswordPage";
 import { DashboardPage } from "@/modules/dashboard/pages/DashboardPage";
 import { SecuritySettingsPage } from "@/modules/auth/pages/SecuritySettingsPage";
+import { MyProfilePage } from "@/modules/auth/pages/MyProfilePage";
 import { MembersListPage } from "@/modules/members/pages/MembersListPage";
 import { MemberFormPage } from "@/modules/members/pages/MemberFormPage";
 import { MemberDetailPage } from "@/modules/members/pages/MemberDetailPage";
@@ -26,6 +27,11 @@ import { ClassesListPage } from "@/modules/classes/pages/ClassesListPage";
 import { ClassFormPage } from "@/modules/classes/pages/ClassFormPage";
 import { ClassDetailPage } from "@/modules/classes/pages/ClassDetailPage";
 import { ClassSessionDetailPage } from "@/modules/classes/pages/ClassSessionDetailPage";
+import { PaymentsPage } from "@/modules/billing/pages/PaymentsPage";
+import { PaymentFormPage } from "@/modules/billing/pages/PaymentFormPage";
+import { PaymentHistoryPage } from "@/modules/billing/pages/PaymentHistoryPage";
+import { PromotionsPage } from "@/modules/billing/pages/PromotionsPage";
+import { PromotionFormPage } from "@/modules/billing/pages/PromotionFormPage";
 import { NotificationsPage } from "@/modules/notifications/pages/NotificationsPage";
 import { TrainingHomePage } from "@/modules/training/pages/TrainingHomePage";
 import { AssignmentsPage } from "@/modules/training/pages/AssignmentsPage";
@@ -62,9 +68,18 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: "/", element: <DashboardPage /> },
-        
+          //miguel
           { path: "/dashboard", element: <DashboardPage /> },
           { path: "/account/security", element: <SecuritySettingsPage /> },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST", "TRAINER", "MEMBER"]} />,
+            children: [{ path: "/account/profile", element: <MyProfilePage /> }],
+          },
+          // end miguel
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
+            children: [{ path: "/members/:memberId/edit", element: <MemberFormPage /> }],
+          },
 
           {
             element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
@@ -72,7 +87,6 @@ export const router = createBrowserRouter([
               { path: "/members", element: <MembersListPage /> },
               { path: "/members/new", element: <MemberFormPage /> },
               { path: "/members/:memberId", element: <MemberDetailPage /> },
-              { path: "/members/:memberId/edit", element: <MemberFormPage /> },
 
               {
                 path: "/access",
@@ -92,22 +106,32 @@ export const router = createBrowserRouter([
               { path: "/employees/:employeeId", element: <EmployeeDetailPage /> },
               { path: "/employees/:employeeId/edit", element: <EmployeeFormPage /> },
 
-              // memberships 
+              // membership plans
               { path: "/membership-plans/new", element: <MembershipPlanFormPage /> },
               { path: "/membership-plans/:planId/edit", element: <MembershipPlanFormPage /> },
+              { path: "/membership-plans", element: <MembershipPlansListPage /> }
+            ],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
+            children: [
               { path: "/memberships", element: <MembershipsListPage /> },
               { path: "/memberships/:membershipId", element: <MembershipDetailPage /> },
-              { path: "/membership-plans", element: <MembershipPlansListPage /> }
             ],
           },
           {
             path: "/classes",
             children: [
               { index: true, element: <ClassesListPage /> },
-              { path: "new", element: <ClassFormPage /> },
               { path: ":classId", element: <ClassDetailPage /> },
-              { path: ":classId/edit", element: <ClassFormPage /> },
               { path: ":classId/sessions/:sessionId", element: <ClassSessionDetailPage /> },
+              {
+                element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
+                children: [
+                  { path: "new", element: <ClassFormPage /> },
+                  { path: ":classId/edit", element: <ClassFormPage /> },
+                ],
+              },
             ],
           },
           {
@@ -119,9 +143,30 @@ export const router = createBrowserRouter([
             ],
           },
           {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
+            children: [
+              { path: "/payments", element: <PaymentsPage /> },
+              { path: "/payments/new", element: <PaymentFormPage /> },
+            ],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
+            children: [
+              { path: "/promotions", element: <PromotionsPage /> },
+              { path: "/promotions/new", element: <PromotionFormPage /> },
+              { path: "/promotions/:promotionId/edit", element: <PromotionFormPage /> },
+            ],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["MEMBER"]} />,
+            children: [{ path: "/payments/me", element: <PaymentHistoryPage /> }],
+          },
+          {
             path: "/notifications",
             element: <NotificationsPage />,
           },
+
+          //Miguel
 
           {
             element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER", "MEMBER"]} />,
@@ -169,6 +214,7 @@ export const router = createBrowserRouter([
             element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
             children: [{ path: "/reports", element: <ReportsPage /> }],
           },
+          //end miguel
         ],
       },
     ],

@@ -19,9 +19,9 @@ export function hasAnyRole(role: Role | undefined, allowed: Role[]): boolean {
 
 export const MODULE_ACCESS = {
   dashboard: ROLES,
-  members: ["ADMIN", "RECEPTIONIST", "TRAINER"] as Role[],
+  members: ["ADMIN", "RECEPTIONIST"] as Role[],
    employees: ["ADMIN"] as Role[],          
-  trainers: ROLES,                         
+  trainers: ["ADMIN", "RECEPTIONIST"] as Role[],
   membershipPlans: ["ADMIN"] as Role[],    
   memberships: ["ADMIN", "RECEPTIONIST"] as Role[],
   billing: ["ADMIN", "RECEPTIONIST"] as Role[],

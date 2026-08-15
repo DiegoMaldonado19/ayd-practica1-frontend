@@ -13,7 +13,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import DeleteIcon from "@mui/icons-material/Delete";
+import { Delete as DeleteIcon } from "@mui/icons-material";
 import { AppDatePicker } from "@/components/AppDatePicker";
 import { getErrorMessage } from "@/api/types";
 import { useCreateRoutine, useExercises, useReplaceRoutine } from "../hooks";
@@ -37,6 +37,16 @@ const WEEKDAY_LABEL: Record<Weekday, string> = {
 };
 
 const WEEKDAYS = Object.keys(WEEKDAY_LABEL) as Weekday[];
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function tomorrowIso(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
 
 function flattenRoutine(routine: Routine): RoutineExerciseItem[] {
   return routine.days.flatMap((day) =>
@@ -95,10 +105,13 @@ export function RoutineEditorDialog({ open, onClose, memberId, routine }: Routin
     setRows((current) => [...current, blankRow(current.length + 1)]);
   };
 
+  const endDateError = endDate !== "" && endDate <= todayIso();
+
   const canSubmit =
     name.trim() !== "" &&
     rows.length > 0 &&
     rows.every((row) => row.exercise_id > 0) &&
+    !endDateError &&
     !mutation.isPending;
 
   const submit = () => {
@@ -137,6 +150,9 @@ export function RoutineEditorDialog({ open, onClose, memberId, routine }: Routin
             label="Fecha de fin (opcional)"
             value={endDate}
             onChange={setEndDate}
+            minDate={tomorrowIso()}
+            error={endDateError}
+            helperText={endDateError ? "La fecha de fin debe ser posterior a hoy" : undefined}
             sx={{ maxWidth: 240 }}
           />
 

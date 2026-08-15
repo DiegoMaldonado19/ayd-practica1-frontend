@@ -138,6 +138,35 @@ Ejemplo real (obligatorio al commitear cambios que afectan reglas de lint/build)
 - Notas adicionales: ninguna
 ```
 
+- Fecha: 2026-08-14
+- Autor: fer
+- Tipo: decision | docs
+- Descripción breve: Decisión y justificación sobre el flujo de `guest_pass` (pases de invitado) en el frontend.
+- Detalle:
+  - Se añadió soporte en el formulario de cobro (`PaymentFormPage`) para crear un `guest_pass` automáticamente cuando el `concept` es `GUEST_PASS`. El flujo implementado hace: crear `guest_pass` (`POST /guest-passes`) con los datos del invitado, y luego crear el `payment` referenciando `guest_pass_id`.
+  - Añadidas validaciones de frontend para los campos del invitado (document_type, document_number, email, phone) siguiendo las mismas reglas que `MemberFormPage` (DPI: 13 dígitos, Passport: 6 o 9, NIT: 8 o 9, teléfono 8 dígitos). Se aplica formateo del teléfono al estilo `####-####`.
+  - Al detectar que el pago corresponde a un `guest_pass`, el formulario muestra una confirmación (Snackbar) con acción `Registrar ingreso` que lleva a la lista de `Guest Passes` (`/access/guest-passes`) para que la recepcionista pueda continuar manualmente el proceso de acceso.
+
+- Motivo para no implementar check-in/check-out automático para invitados:
+  - El enunciado de la práctica solicita que la recepcionista pueda registrar pases de día/prueba (capturar nombre, documento y fecha) y limitar su uso por persona, pero no obliga a implementar un flujo automático de check-in/check-out para `guest_pass` distinto del de socios.
+  - La colección Postman del backend expone `POST /guest-passes` y endpoints de `visits` (`POST /visits` y `/visits/{id}/check-out`) que usan `member_id`. No existe en Postman un endpoint que permita explícitamente hacer check-in/check-out usando `guest_pass_id`.
+  - Para respetar el contrato del backend y no romper reglas de negocio, se decidió NO implementar un checkout de invitados no soportado por la API. En su lugar se dejó una UX mínima (Snackbar -> lista de `guest-passes`) que facilita la acción manual por la recepcionista.
+
+- Archivos modificados (implementación y validaciones):
+  - `src/modules/billing/pages/PaymentFormPage.tsx`
+  - `src/modules/billing/services.ts` (mejoras de tipado / normalización)
+  - `src/modules/notifications/components/NotificationBell.tsx` (ajuste menor en catch)
+
+- Comprobaciones locales realizadas:
+  - `npm run lint`: OK (warnings menores por `react-hook-form` `watch()` que no son errores).
+  - `npm run build`: OK (proyecto compila y genera `dist`).
+
+- Notas adicionales / recomendaciones futuras:
+  - Si el backend añade soporte para check-in/check-out con `guest_pass_id` (o un endpoint `POST /guest-passes/{id}/check-in`), se puede extender el `onSuccess` del flujo de pago para hacer check-in automáticamente.
+  - Mantener la validación del frontend pero delegar las reglas finales al backend (por ejemplo límite de pases gratuitos por persona). Registrar en servidor cualquier rechazo y mostrar el `error_code` al usuario en el `Snackbar`.
+  - Antes de cambiar la UX (por ejemplo, redirección automática tras pago), confirmar la API con el equipo backend y documentarlo aquí.
+
+
 ## 16. Reglas concretas respecto a ESLint y estilo
 
 - Seguir la configuración en `eslint.config.js` del proyecto. No deshabilitar reglas globales sin documentarlo en este archivo.

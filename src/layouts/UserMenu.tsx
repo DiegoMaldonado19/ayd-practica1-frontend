@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -27,6 +28,7 @@ function getInitials(name: string): string {
 
 export function UserMenu() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -34,9 +36,10 @@ export function UserMenu() {
 
   return (
     <>
+    
       <Box sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}>
-        <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-          {user.full_name}
+        <Typography variant="body2" sx={{ fontWeight: 400, lineHeight: 1.2 }}>
+          {user.full_name}  
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>
           {ROLE_LABEL[user.role]}
@@ -101,13 +104,13 @@ export function UserMenu() {
 
         <Divider />
 
-        <MenuItem>
+        <MenuItem onClick={() => navigate("/account/profile")}>
           <ListItemIcon>
             <PersonIcon fontSize="small" />
           </ListItemIcon>
           Mi perfil
         </MenuItem>
-        <MenuItem>
+        <MenuItem onClick={() => navigate("/account/security")}>
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
