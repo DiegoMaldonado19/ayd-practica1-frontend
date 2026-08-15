@@ -28,7 +28,6 @@ import {
   Payment as PaymentIcon,
   Restaurant as RestaurantIcon,
   DirectionsRun as DirectionsRunIcon,
-  Warning as WarningIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
   Home as HomeIcon,
