@@ -1,17 +1,24 @@
+import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { useAuth } from "@/auth/useAuth";
+import { AdminPanel } from "./AdminPanel";
+import { ReceptionistPanel } from "./ReceptionistPanel";
+import { TrainerPanel } from "./TrainerPanel";
+import { MemberPanel } from "./MemberPanel";
 
 export function DashboardPage() {
   const { user } = useAuth();
 
   return (
-    <>
-      <Typography variant="h4" gutterBottom>
+    <Box>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
         Bienvenido, {user?.full_name}
       </Typography>
-      <Typography variant="body1" color="text.secondary">
-        El panel principal se implementará en el módulo <code>dashboard</code>.
-      </Typography>
-    </>
+
+      {user?.role === "ADMIN" && <AdminPanel />}
+      {user?.role === "RECEPTIONIST" && <ReceptionistPanel />}
+      {user?.role === "TRAINER" && <TrainerPanel />}
+      {user?.role === "MEMBER" && <MemberPanel />}
+    </Box>
   );
 }

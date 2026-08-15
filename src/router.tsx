@@ -8,6 +8,7 @@ import { ForgotPasswordPage } from "@/modules/auth/pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/modules/auth/pages/ResetPasswordPage";
 import { DashboardPage } from "@/modules/dashboard/pages/DashboardPage";
 import { SecuritySettingsPage } from "@/modules/auth/pages/SecuritySettingsPage";
+import { MyProfilePage } from "@/modules/auth/pages/MyProfilePage";
 import { MembersListPage } from "@/modules/members/pages/MembersListPage";
 import { MemberFormPage } from "@/modules/members/pages/MemberFormPage";
 import { MemberDetailPage } from "@/modules/members/pages/MemberDetailPage";
@@ -31,6 +32,18 @@ import { PaymentFormPage } from "@/modules/billing/pages/PaymentFormPage";
 import { PromotionsPage } from "@/modules/billing/pages/PromotionsPage";
 import { PromotionFormPage } from "@/modules/billing/pages/PromotionFormPage";
 import { NotificationsPage } from "@/modules/notifications/pages/NotificationsPage";
+import { TrainingHomePage } from "@/modules/training/pages/TrainingHomePage";
+import { AssignmentsPage } from "@/modules/training/pages/AssignmentsPage";
+import { MyMembersPage } from "@/modules/training/pages/MyMembersPage";
+import { ExercisesPage } from "@/modules/training/pages/ExercisesPage";
+import { MemberTrainingPage } from "@/modules/training/pages/MemberTrainingPage";
+import { AlertsPage } from "@/modules/training/pages/AlertsPage";
+import { MyTrainingPage } from "@/modules/training/pages/MyTrainingPage";
+import { NutritionHomePage } from "@/modules/nutrition/pages/NutritionHomePage";
+import { FoodsPage } from "@/modules/nutrition/pages/FoodsPage";
+import { MyNutritionPage } from "@/modules/nutrition/pages/MyNutritionPage";
+import { MemberNutritionPage } from "@/modules/nutrition/pages/MemberNutritionPage";
+import { ReportsPage } from "@/modules/reports/pages/ReportsPage";
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +70,16 @@ export const router = createBrowserRouter([
         
           { path: "/dashboard", element: <DashboardPage /> },
           { path: "/account/security", element: <SecuritySettingsPage /> },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST", "TRAINER", "MEMBER"]} />,
+            children: [{ path: "/account/profile", element: <MyProfilePage /> }],
+          },
+          {
+            // A member may edit their own file (MemberService.assertOwnFile allows it;
+            // the backend, not this gate, is what actually enforces "own file only").
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST", "MEMBER"]} />,
+            children: [{ path: "/members/:memberId/edit", element: <MemberFormPage /> }],
+          },
 
           {
             element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
@@ -64,7 +87,6 @@ export const router = createBrowserRouter([
               { path: "/members", element: <MembersListPage /> },
               { path: "/members/new", element: <MemberFormPage /> },
               { path: "/members/:memberId", element: <MemberDetailPage /> },
-              { path: "/members/:memberId/edit", element: <MemberFormPage /> },
 
               {
                 path: "/access",
@@ -123,6 +145,53 @@ export const router = createBrowserRouter([
           {
             path: "/notifications",
             element: <NotificationsPage />,
+          },
+
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER", "MEMBER"]} />,
+            children: [{ path: "/training", element: <TrainingHomePage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
+            children: [{ path: "/training/assignments", element: <AssignmentsPage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["TRAINER"]} />,
+            children: [{ path: "/training/my-members", element: <MyMembersPage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER"]} />,
+            children: [
+              { path: "/training/exercises", element: <ExercisesPage /> },
+              { path: "/training/members/:memberId", element: <MemberTrainingPage /> },
+              { path: "/training/alerts", element: <AlertsPage /> },
+            ],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["MEMBER"]} />,
+            children: [{ path: "/training/me", element: <MyTrainingPage /> }],
+          },
+
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER", "MEMBER"]} />,
+            children: [{ path: "/nutrition", element: <NutritionHomePage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER", "MEMBER"]} />,
+            children: [{ path: "/nutrition/foods", element: <FoodsPage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["MEMBER"]} />,
+            children: [{ path: "/nutrition/me", element: <MyNutritionPage /> }],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "TRAINER"]} />,
+            children: [{ path: "/nutrition/members/:memberId", element: <MemberNutritionPage /> }],
+          },
+
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
+            children: [{ path: "/reports", element: <ReportsPage /> }],
           },
         ],
       },

@@ -16,6 +16,8 @@ export interface ErrorResponse {
   suggested_action?: string;
   timestamp: string;
   path: string;
+  field_errors?: Record<string, string>;
+  trace_id?: string;
 }
 
 export function getErrorResponse(error: unknown): ErrorResponse | null {
@@ -26,7 +28,11 @@ export function getErrorResponse(error: unknown): ErrorResponse | null {
 }
 
 export function getErrorMessage(error: unknown, fallback = "Ocurrió un error inesperado. Intenta de nuevo."): string {
-  return getErrorResponse(error)?.message ?? fallback;
+  const response = getErrorResponse(error);
+  if (!response) return fallback;
+
+  const firstFieldError = response.field_errors && Object.values(response.field_errors)[0];
+  return firstFieldError ? `${response.message} (${firstFieldError})` : response.message;
 }
 
 export function getErrorCode(error: unknown): string | null {
