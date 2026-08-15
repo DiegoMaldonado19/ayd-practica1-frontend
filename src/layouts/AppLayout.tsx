@@ -21,27 +21,24 @@ export function AppLayout() {
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "grey.50" }}>
-      {/* Sidebar: versión mobile (drawer temporal) + desktop (drawer permanente) */}
+     
       <Sidebar
         mobileOpen={mobileOpen}
         collapsed={collapsed}
         onCloseMobile={() => setMobileOpen(false)}
         onToggleCollapse={handleToggleCollapse}
       />
-
-      {/* Contenido principal */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          width: { md: `calc(100% - ${sidebarWidth}px)` },
+          minWidth: 0,
           ml: { md: `${sidebarWidth}px` },
-          transition: "margin 0.2s ease, width 0.2s ease",
+          transition: "margin 0.2s ease",
         }}
       >
-        {/* Topbar */}
         <AppBar
           position="sticky"
           color="inherit"
@@ -73,11 +70,11 @@ export function AppLayout() {
         <Box
           sx={{
             flexGrow: 1,
-            px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 3, md: 4 },
-            maxWidth: 1400,
+            px: { xs: 1, sm: 2, md: 1 },
+            py: { xs: 1, md: 3 },
+            maxWidth: 1380,
             width: "100%",
-            mx: "auto",
+            mx: {},
           }}
         >
           <Outlet />

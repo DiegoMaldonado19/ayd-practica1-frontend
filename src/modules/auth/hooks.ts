@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import * as authService from "./services";
 import type {
   ChangePasswordRequest,
@@ -42,5 +42,13 @@ export function useChangePasswordMutation() {
 export function useUpdateTwoFactorMutation() {
   return useMutation({
     mutationFn: (request: TwoFactorPreferenceRequest) => authService.updateTwoFactorPreference(request),
+  });
+}
+
+export function useUsers(params: { page?: number; size?: number } = {}, enabled = true) {
+  return useQuery({
+    queryKey: ["users", params],
+    queryFn: () => authService.listUsers(params),
+    enabled,
   });
 }

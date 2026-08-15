@@ -1,5 +1,12 @@
 export type Role = "ADMIN" | "RECEPTIONIST" | "TRAINER" | "MEMBER";
 
+export interface CreateUserRequest {
+  person_id: number;
+  username: string;
+  password: string;
+  role: Role;
+}
+
 export type UserStatus = "ACTIVE" | "INACTIVE" | "BLOCKED" | "PENDING_ACTIVATION";
 
 export type TwoFactorChannel = "EMAIL" | "SMS";

@@ -39,6 +39,7 @@ import type {
   CancellationReason,
   FreezeReason,
 } from "@/modules/membership/types";
+import { AppDatePicker } from "@/components/AppDatePicker";
 
 function todayISO(): string {
   const d = new Date();
@@ -230,15 +231,13 @@ function FreezeDialog({
             multiline
             rows={2}
           />
-          <TextField
-            type="date"
+          <AppDatePicker
             label="Fecha estimada de reactivación"
             value={expectedEnd}
-            onChange={(e) => setExpectedEnd(e.target.value)}
+            onChange={setExpectedEnd}
             onBlur={() => setTouched((t) => ({ ...t, end: true }))}
             fullWidth
-            InputLabelProps={{ shrink: true }}
-            inputProps={{ min: today }}
+            minDate={today}
             error={!!endError || projectedTooLong}
             helperText={
               endError ||

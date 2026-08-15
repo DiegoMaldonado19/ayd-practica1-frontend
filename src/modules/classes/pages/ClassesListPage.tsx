@@ -7,6 +7,7 @@ import type { ColDef } from "ag-grid-community";
 import { Add as AddIcon } from "@mui/icons-material";
 import { useClassSessions, useGroupClasses } from "@/modules/classes/hooks";
 import type { ClassDiscipline, ClassSession } from "@/modules/classes/types";
+import { AppDatePicker } from "@/components/AppDatePicker";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -174,22 +175,18 @@ export function ClassesListPage() {
           ))}
         </TextField>
 
-        <TextField
-          type="date"
+        <AppDatePicker
           label="Desde"
           value={from}
-          onChange={(e) => setFrom(e.target.value)}
+          onChange={setFrom}
           size="small"
-          InputLabelProps={{ shrink: true }}
         />
 
-        <TextField
-          type="date"
+        <AppDatePicker
           label="Hasta"
           value={to}
-          onChange={(e) => setTo(e.target.value)}
+          onChange={setTo}
           size="small"
-          InputLabelProps={{ shrink: true }}
         />
       </Stack>
 

@@ -37,8 +37,8 @@ import { useAuth } from "@/auth/useAuth";
 import { canAccessModule, hasAnyRole, type ModuleKey } from "@/auth/permissions";
 import type { Role } from "@/modules/auth/types";
 
-export const DRAWER_WIDTH = 260;
-export const DRAWER_COLLAPSED_WIDTH = 72;
+export const DRAWER_WIDTH = 220;
+export const DRAWER_COLLAPSED_WIDTH = 64;
 
 type NavChild = {
   label: string;
@@ -50,10 +50,8 @@ type NavItem = {
   label: string;
   icon: React.ReactElement;
   module: ModuleKey;
-  // Leaf item: navigates directly.
   path?: string;
   roles?: Role[];
-  // Group item: expands to show these instead of navigating itself.
   children?: NavChild[];
 };
 
@@ -67,18 +65,17 @@ const NAV_ITEMS: NavItem[] = [
     path: "/trainers",
     icon: <FitnessCenterIcon />,
     module: "trainers",
-    // /trainers itself is only reachable by ADMIN/RECEPTIONIST (see router.tsx) —
-    // TRAINER and MEMBER used to see this link too even though it always bounced
-    // them back to "/", since MODULE_ACCESS.trainers is the full role set.
     roles: ["ADMIN", "RECEPTIONIST"],
   },
   { label: "Planes", path: "/membership-plans", icon: <CreditCardIcon />, module: "membershipPlans" },
   { label: "Membresías", path: "/memberships", icon: <CreditCardIcon />, module: "memberships" },
   { label: "Acceso", path: "/access/visits", icon: <EventIcon />, module: "access" },
   { label: "Clases", path: "/classes", icon: <ClassIcon />, module: "classes" },
- // { label: "Notificaciones", path: "/notifications", icon: <NotificationsIcon />, module: "notifications" },
+  // { label: "Notificaciones", path: "/notifications", icon: <NotificationsIcon />, module: "notifications" },
   { label: "Reportes", path: "/reports", icon: <AssessmentIcon />, module: "reports" },
   { label: "Pagos", path: "/payments", icon: <PaymentIcon />, module: "billing" },
+  { label: "Mis pagos", path: "/payments/me", icon: <PaymentIcon />, module: "billing", roles: ["MEMBER"] },
+  { label: "Promociones", path: "/promotions", icon: <CreditCardIcon />, module: "billing" },
   { label: "Nutrición", path: "/nutrition", icon: <RestaurantIcon />, module: "nutrition" },
   {
     label: "Entrenamiento",
@@ -143,9 +140,6 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
     return location.pathname === path || location.pathname.startsWith(path + "/");
   };
 
-  // Each group's visible children for the signed-in role, computed once per
-  // render so both filtering and the "auto-expand if a child is active"
-  // check use the same list.
   const visibleChildrenByLabel = useMemo(() => {
     const map = new Map<string, NavChild[]>();
     for (const item of NAV_ITEMS) {
@@ -191,19 +185,18 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
 
   const drawerContent = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Logo / marca */}
       <Toolbar
         sx={{
           px: collapsed ? 1.5 : 2.5,
           justifyContent: collapsed ? "center" : "space-between",
-          minHeight: 64,
+          minHeight: 54,
         }}
       >
         {!collapsed && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Box
               sx={{
-                width: 36,
+                width: 46,
                 height: 36,
                 borderRadius: 2,
                 bgcolor: "primary.main",
@@ -256,12 +249,9 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
 
       <Divider />
 
-      {/* Navegación */}
-      <List sx={{ flexGrow: 1, px: 1, py: 2 }}>
+      <List sx={{ flexGrow: 1, px: collapsed ? 0.75 : 1, py: 1.5, overflowY: "auto" }}>
         {visibleItems.map((item) => {
-          // Group item: expands (or, when the sidebar is icon-collapsed,
-          // jumps straight to its first visible child instead of trying to
-          // render a flyout).
+          // Group item
           if (item.children) {
             const children = visibleChildrenByLabel.get(item.label) ?? [];
             const open = isGroupOpen(item);
@@ -375,7 +365,6 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
         })}
       </List>
 
-      {/* Footer: botón colapsar */}
       <Box sx={{ p: 1, borderTop: 1, borderColor: "divider", display: { xs: "none", md: "block" } }}>
         <ListItemButton
           onClick={onToggleCollapse}
