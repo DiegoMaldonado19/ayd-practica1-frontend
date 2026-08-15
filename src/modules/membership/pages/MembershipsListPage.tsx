@@ -35,6 +35,7 @@ import type {
 } from "@/modules/membership/types";
 import { MemberSelect } from "@/modules/membership/components/MemberSelect";
 import type { Member } from "@/modules/members/types";
+import { AppDatePicker } from "@/components/AppDatePicker";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -140,14 +141,12 @@ function ContractDialog({
               </MenuItem>
             ))}
           </TextField>
-          <TextField
-            type="date"
+          <AppDatePicker
             label="Fecha de inicio"
             fullWidth
-            InputLabelProps={{ shrink: true }}
-            inputProps={{ min: today }}
+            minDate={today}
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={setStartDate}
             onBlur={() => setTouched((t) => ({ ...t, start: true }))}
             error={!!startError}
             helperText={startError || "Vacía = hoy"}

@@ -18,6 +18,7 @@ import {
 import { ArrowBack as ArrowBackIcon, InfoOutlined as InfoOutlinedIcon, Save as SaveIcon } from "@mui/icons-material";
 import { useCreatePromotion, usePromotion, useUpdatePromotion } from "@/modules/billing/hooks";
 import type { CreatePromotionPayload, PromotionDiscountType } from "@/modules/billing/types";
+import { AppDatePicker } from "@/components/AppDatePicker";
 
 const todayISO = () => {
   const today = new Date();
@@ -60,10 +61,6 @@ const schema = yup.object({
     .test("valid-range", "La fecha de fin no puede ser anterior a la fecha de inicio", function (value) {
       if (!value || !this.parent.valid_from) return true;
       return getDayDiff(this.parent.valid_from, value) >= 0;
-    })
-    .test("min-duration", "La promoción debe durar al menos 1 día", function (value) {
-      if (!value || !this.parent.valid_from) return true;
-      return getDayDiff(this.parent.valid_from, value) >= 1;
     }),
   max_uses: yup.number().nullable().transform((value, originalValue) => (originalValue === "" ? null : value)),
   max_uses_per_member: yup.number().nullable().transform((value, originalValue) => (originalValue === "" ? null : value)),
@@ -310,13 +307,13 @@ export function PromotionFormPage() {
                 name="valid_from"
                 control={control}
                 render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="date"
+                  <AppDatePicker
                     label="Válida desde"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                     fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    inputProps={{ min: todayISO() }}
+                    minDate={todayISO()}
                     error={!!errors.valid_from}
                     helperText={errors.valid_from?.message}
                     InputProps={{
@@ -332,13 +329,13 @@ export function PromotionFormPage() {
                 name="valid_to"
                 control={control}
                 render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="date"
+                  <AppDatePicker
                     label="Válida hasta"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                     fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    inputProps={{ min: validFrom || todayISO() }}
+                    minDate={validFrom || todayISO()}
                     error={!!errors.valid_to}
                     helperText={errors.valid_to?.message}
                     InputProps={{

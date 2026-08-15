@@ -269,7 +269,6 @@ export function GuestPassesPage() {
                       }}
                     >
                       <MenuItem value="FREE_TRIAL">Día de Prueba (Gratuito)</MenuItem>
-                      <MenuItem value="PAID_DAY_PASS">Pase de Día (Pagado)</MenuItem>
                       <MenuItem value="MEMBER_GUEST">Invitado de Socio</MenuItem>
                     </TextField>
                   )}

@@ -1,6 +1,8 @@
 import { apiClient } from "@/api/client";
+import type { Page } from "@/api/types";
 import type {
   ChangePasswordRequest,
+  CreateUserRequest,
   LoginRequest,
   LoginResponse,
   LoginSuccessResponse,
@@ -12,6 +14,11 @@ import type {
   UserProfile,
   VerificationRequest,
 } from "./types";
+
+export interface ListUsersParams {
+  page?: number;
+  size?: number;
+}
 
 export async function login(request: LoginRequest): Promise<LoginResponse> {
   const response = await apiClient.post<LoginResponse>("/auth/login", request);
@@ -55,5 +62,14 @@ export async function updateTwoFactorPreference(
   request: TwoFactorPreferenceRequest,
 ): Promise<TwoFactorPreferenceResponse> {
   const response = await apiClient.patch<TwoFactorPreferenceResponse>("/users/me/two-factor", request);
+  return response.data;
+}
+
+export async function createUser(request: CreateUserRequest): Promise<void> {
+  await apiClient.post("/users", request);
+}
+
+export async function listUsers(params: ListUsersParams): Promise<Page<UserProfile>> {
+  const response = await apiClient.get<Page<UserProfile>>("/users", { params });
   return response.data;
 }

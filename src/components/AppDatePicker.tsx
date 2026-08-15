@@ -1,6 +1,7 @@
 import dayjs, { type Dayjs } from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import type { SxProps, Theme } from "@mui/material/styles";
+import type { TextFieldProps } from "@mui/material/TextField";
 
 interface AppDatePickerProps {
   label?: string;
@@ -16,6 +17,7 @@ interface AppDatePickerProps {
   minDate?: string;
   maxDate?: string;
   sx?: SxProps<Theme>;
+  InputProps?: TextFieldProps["InputProps"];
 }
 
 function toDayjs(value: string): Dayjs | null {
@@ -41,6 +43,7 @@ export function AppDatePicker({
   minDate,
   maxDate,
   sx,
+  InputProps,
 }: AppDatePickerProps) {
   return (
     <DatePicker
@@ -51,7 +54,7 @@ export function AppDatePicker({
       minDate={toDayjs(minDate ?? "") ?? undefined}
       maxDate={toDayjs(maxDate ?? "") ?? undefined}
       slotProps={{
-        textField: { error, helperText, required, size, fullWidth, sx, onBlur },
+        textField: { error, helperText, required, size, fullWidth, sx, onBlur, InputProps },
       }}
     />
   );

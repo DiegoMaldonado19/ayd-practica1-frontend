@@ -8,11 +8,11 @@ import {
   Grid,
   Paper,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import { ArrowBack as ArrowBackIcon, Edit as EditIcon } from "@mui/icons-material";
 import { useClassSessions, useGenerateGroupClassSessions, useGroupClass } from "@/modules/classes/hooks";
+import { AppDatePicker } from "@/components/AppDatePicker";
 
 const weekdayLabel: Record<string, string> = {
   MONDAY: "Lunes",
@@ -194,22 +194,18 @@ export function ClassDetailPage() {
         </Stack>
 
         <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems="center" sx={{ mb: 2 }}>
-          <TextField
-            type="date"
+          <AppDatePicker
             label="Desde"
             value={sessionFrom}
-            onChange={(event) => setSessionFrom(event.target.value)}
+            onChange={setSessionFrom}
             size="small"
-            InputLabelProps={{ shrink: true }}
             error={!!dateError}
           />
-          <TextField
-            type="date"
+          <AppDatePicker
             label="Hasta"
             value={sessionTo}
-            onChange={(event) => setSessionTo(event.target.value)}
+            onChange={setSessionTo}
             size="small"
-            InputLabelProps={{ shrink: true }}
             error={!!dateError}
           />
           <Button

@@ -12,10 +12,12 @@ import {
   Snackbar,
   Box,
   Button,
+  Divider,
   Grid,
   IconButton,
   MenuItem,
   Paper,
+  Stack,
   TextField,
   Tooltip,
   Typography,
@@ -39,7 +41,7 @@ const formatPhone = (value: string): string => {
 const schema = yup.object({
   member_id: yup.number().nullable().transform((value, originalValue) => (originalValue === "" ? null : value)),
   membership_id: yup.number().nullable().transform((value, originalValue) => (originalValue === "" ? null : value)),
-  concept: yup.string().oneOf(["OTHER", "MEMBERSHIP", "GUEST_PASS"]).required("Selecciona un concepto"),
+  concept: yup.string().oneOf(["MEMBERSHIP", "GUEST_PASS"]).required("Selecciona un concepto"),
   payment_method: yup.string().oneOf(["CASH", "DEBIT_CARD"]).required("Selecciona un método"),
   promotion_id: yup.number().nullable().transform((value, originalValue) => (originalValue === "" ? null : value)),
   amount: yup.number().typeError("Debe ser un número").min(0, "No puede ser negativo").required("El monto es requerido"),
@@ -88,6 +90,20 @@ type FormValues = yup.InferType<typeof schema>;
 
 const fieldInfo = (title: string, example: string) => ({ title, example });
 
+/** Calcula el descuento y el total (neto) aplicando la promoción sobre el monto original. */
+const computeDiscount = (
+  gross: number,
+  promotion: Promotion | null,
+): { discount: number; net: number } => {
+  if (!promotion) return { discount: 0, net: gross };
+  if (promotion.discount_type === "PERCENTAGE") {
+    const discount = (gross * Number(promotion.discount_value)) / 100;
+    return { discount, net: Math.max(gross - discount, 0) };
+  }
+  const discount = Math.min(Number(promotion.discount_value), gross);
+  return { discount, net: Math.max(gross - discount, 0) };
+};
+
 export function PaymentFormPage() {
   const navigate = useNavigate();
   const { mutateAsync: createPaymentAsync, isPending } = useCreatePayment();
@@ -108,7 +124,7 @@ export function PaymentFormPage() {
     defaultValues: {
       member_id: null,
       membership_id: null,
-      concept: "OTHER",
+      concept: "MEMBERSHIP",
       payment_method: "CASH",
       promotion_id: null,
       amount: undefined as unknown as number,
@@ -119,6 +135,7 @@ export function PaymentFormPage() {
   const selectedMembershipId = useWatch({ control, name: "membership_id" });
   const selectedPromotionId = useWatch({ control, name: "promotion_id" });
   const selectedConcept = useWatch({ control, name: "concept" });
+  const amount = useWatch({ control, name: "amount" });
 
   const { data: membershipData, isFetching: isFetchingMemberships } = useMemberships({ page: 0, size: 100 });
   const memberMemberships = useMemo(() => {
@@ -140,6 +157,19 @@ export function PaymentFormPage() {
     () => (promotionsData?.content ?? []).find((promo) => promo.promotion_id === selectedPromotionId) ?? null,
     [promotionsData, selectedPromotionId],
   );
+
+  const grossAmount = useMemo(() => {
+    if (selectedConcept === "MEMBERSHIP") {
+      return selectedMembership ? Number(selectedMembership.plan.price) : 0;
+    }
+    return typeof amount === "number" && Number.isFinite(amount) && amount > 0 ? amount : 0;
+  }, [selectedConcept, selectedMembership, amount]);
+
+  const priceBreakdown = useMemo(() => {
+    if (grossAmount <= 0) return null;
+    const { discount, net } = computeDiscount(grossAmount, selectedPromotion);
+    return { gross: grossAmount, discount, net, promotion: selectedPromotion };
+  }, [grossAmount, selectedPromotion]);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -192,7 +222,7 @@ export function PaymentFormPage() {
       }
 
       await createPaymentAsync(payload);
-      navigate("/payments");
+      navigate(values.concept === "GUEST_PASS" ? "/access/guest-passes" : "/payments");
     } catch (error) {
       setSubmitted(false);
       const err = error as unknown as { response?: { data?: { message?: string } }; message?: string };
@@ -235,6 +265,8 @@ export function PaymentFormPage() {
                 onChange={(_, value) => {
                   setValue("member_id", value?.member_id ?? null, { shouldValidate: true });
                   setValue("membership_id", null, { shouldValidate: true });
+                  setValue("concept", "MEMBERSHIP");
+                  setValue("amount", undefined as unknown as number, { shouldValidate: true });
                 }}
                 onInputChange={(_, newValue, reason) => {
                   if (reason === "input") {
@@ -269,6 +301,7 @@ export function PaymentFormPage() {
                 value={selectedMembership}
                 onChange={(_, value) => {
                   setValue("membership_id", value?.membership_id ?? null, { shouldValidate: true });
+                  setValue("amount", value ? Number(value.plan.price) : (undefined as unknown as number), { shouldValidate: true });
                 }}
                 getOptionLabel={(option) => `#${option.membership_id} · ${option.plan?.name ?? "Membresía"}`}
                 isOptionEqualToValue={(option, value) => option.membership_id === value.membership_id}
@@ -344,12 +377,12 @@ export function PaymentFormPage() {
                       if (e.target.value === 'GUEST_PASS') {
                         setValue('member_id', null);
                         setValue('membership_id', null);
+                        setValue('amount', undefined as unknown as number);
                       }
                     }}
                   >
-                    <MenuItem value="OTHER">Otro</MenuItem>
                     <MenuItem value="MEMBERSHIP">Membresía</MenuItem>
-                    <MenuItem value="GUEST_PASS">Pase de invitado</MenuItem>
+                    <MenuItem value="GUEST_PASS">Pase de día</MenuItem>
                   </TextField>
                 )}
               />
@@ -391,12 +424,43 @@ export function PaymentFormPage() {
                     value={field.value ?? ""}
                     onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
                     error={!!errors.amount}
-                    helperText={errors.amount?.message}
+                    helperText={
+                      errors.amount?.message ??
+                      (selectedConcept === "MEMBERSHIP" && selectedMembership
+                        ? "Monto del plan: no editable"
+                        : "Monto original (antes de descuento)")
+                    }
+                    disabled={selectedConcept === "MEMBERSHIP"}
                     InputProps={{ endAdornment: infoIcon(fieldInfo("Monto a pagar", "250.00")) }}
                   />
                 )}
               />
             </Grid>
+            {priceBreakdown && (
+              <Grid item xs={12}>
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: "grey.50" }}>
+                  <Stack spacing={1}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography variant="body2" color="text.secondary">Monto original</Typography>
+                      <Typography variant="body2">Q {priceBreakdown.gross.toFixed(2)}</Typography>
+                    </Box>
+                    {priceBreakdown.discount > 0 && (
+                      <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Descuento ({priceBreakdown.promotion?.code ?? "promoción"})
+                        </Typography>
+                        <Typography variant="body2" color="success.main">-Q {priceBreakdown.discount.toFixed(2)}</Typography>
+                      </Box>
+                    )}
+                    <Divider />
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Total a pagar</Typography>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Q {priceBreakdown.net.toFixed(2)}</Typography>
+                    </Box>
+                  </Stack>
+                </Paper>
+              </Grid>
+            )}
             {selectedConcept === 'GUEST_PASS' && (
               <>
                 <Grid item xs={12} sm={4}>
