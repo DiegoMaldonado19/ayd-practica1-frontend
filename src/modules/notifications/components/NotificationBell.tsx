@@ -193,8 +193,8 @@ export function NotificationBell() {
           item.notificationId === notificationId ? { ...item, status: "READ" } : item,
         ),
       );
-    } catch {
-     
+    } catch (e) {
+      console.warn("Failed to mark notification as read", e);
     }
   };
 

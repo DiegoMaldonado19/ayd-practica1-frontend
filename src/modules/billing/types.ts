@@ -1,5 +1,5 @@
 export type PaymentConcept = "OTHER" | "MEMBERSHIP" | "GUEST_PASS";
-export type PaymentMethod = "CASH" | "DEBIT_CARD" | "CREDIT_CARD" | "BANK_TRANSFER" | "OTHER";
+export type PaymentMethod = "CASH" | "DEBIT_CARD";
 export type PaymentStatus = "REGISTERED" | "CONFIRMED" | "VOIDED";
 export type PromotionDiscountType = "PERCENTAGE" | "FIXED_AMOUNT";
 
@@ -27,7 +27,10 @@ export interface Payment {
   concept: PaymentConcept;
   payment_method: PaymentMethod;
   status: PaymentStatus;
-  amount: number;
+  // Backend may return amounts as `gross_amount`/`net_amount`.
+  amount?: number;
+  gross_amount?: number;
+  net_amount?: number;
   discount_amount?: number | null;
   promotion_id?: number | null;
   receipt_series?: string | null;
@@ -78,3 +81,5 @@ export interface CreatePaymentPayload {
 export interface VoidPaymentPayload {
   reason: string;
 }
+
+

@@ -1,8 +1,11 @@
 import { useMemo } from "react";
-import { Box, Chip, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { Box, Button, Chip, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import { Add as AddIcon } from "@mui/icons-material";
 import { usePromotions } from "@/modules/billing/hooks";
 
 export function PromotionsPage() {
+  const navigate = useNavigate();
   const { data, isLoading, isError } = usePromotions({ page: 0, size: 20 });
 
   const rows = useMemo(() => data?.content ?? [], [data]);
@@ -18,6 +21,9 @@ export function PromotionsPage() {
             Promociones activas e inactivas del módulo billing.
           </Typography>
         </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/promotions/new")}>
+          Nueva promoción
+        </Button>
       </Stack>
 
       {isError && (
@@ -53,7 +59,7 @@ export function PromotionsPage() {
               </TableRow>
             ) : (
               rows.map((promotion) => (
-                <TableRow key={promotion.promotion_id} hover>
+                <TableRow key={promotion.promotion_id}>
                   <TableCell>{promotion.promotion_id}</TableCell>
                   <TableCell>{promotion.code}</TableCell>
                   <TableCell>{promotion.name}</TableCell>

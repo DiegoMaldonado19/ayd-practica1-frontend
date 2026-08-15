@@ -10,6 +10,21 @@ import type {
   VoidPaymentPayload,
 } from "./types";
 
+function normalizePayment(p: unknown): Payment {
+  // Prefer net_amount (backend returns gross/net); fall back to amount.
+  const obj = (p as Record<string, unknown>) ?? {};
+  const net = obj["net_amount"];
+  const amount = typeof net === "number" ? (net as number) : (obj["amount"] as number | undefined);
+  const normalized: Record<string, unknown> = {
+    ...obj,
+    amount,
+    gross_amount: obj["gross_amount"],
+    net_amount: obj["net_amount"],
+    discount_amount: obj["discount_amount"] ?? null,
+  };
+  return normalized as unknown as Payment;
+}
+
 export async function getPromotions(params: PromotionListParams = {}): Promise<Page<Promotion>> {
   const { data } = await apiClient.get<Page<Promotion>>("/promotions", { params });
   return data;
@@ -43,27 +58,32 @@ export async function togglePromotionStatus(
 
 export async function getPayments(params: PaymentListParams = {}): Promise<Page<Payment>> {
   const { data } = await apiClient.get<Page<Payment>>("/payments", { params });
-  return data;
+  // Normalize payments to expose `amount` consistently to the UI
+  const normalized: Page<Payment> = {
+    ...data,
+    content: (data.content ?? []).map((p: unknown) => normalizePayment(p)),
+  };
+  return normalized;
 }
 
 export async function getPaymentById(paymentId: number): Promise<Payment> {
   const { data } = await apiClient.get<Payment>(`/payments/${paymentId}`);
-  return data;
+  return normalizePayment(data);
 }
 
 export async function createPayment(payload: CreatePaymentPayload): Promise<Payment> {
   const { data } = await apiClient.post<Payment>("/payments", payload);
-  return data;
+  return normalizePayment(data);
 }
 
 export async function confirmPayment(paymentId: number): Promise<Payment> {
   const { data } = await apiClient.post<Payment>(`/payments/${paymentId}/confirmations`);
-  return data;
+  return normalizePayment(data);
 }
 
 export async function voidPayment(paymentId: number, payload: VoidPaymentPayload): Promise<Payment> {
   const { data } = await apiClient.post<Payment>(`/payments/${paymentId}/voids`, payload);
-  return data;
+  return normalizePayment(data);
 }
 
 export async function getPaymentReceipt(paymentId: number): Promise<{ receipt_series: string; receipt_number: number; receipt_issued_at: string }> {

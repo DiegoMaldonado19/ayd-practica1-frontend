@@ -32,8 +32,8 @@ import { apiClient } from "@/api/client";
 import { useAuth } from "@/auth/useAuth";
 import { canAccessModule, type ModuleKey} from "@/auth/permissions";
 
-export const DRAWER_WIDTH = 260;
-export const DRAWER_COLLAPSED_WIDTH = 72;
+export const DRAWER_WIDTH = 220;
+export const DRAWER_COLLAPSED_WIDTH = 64;
 
 type NavItem = {
   label: string;
@@ -54,6 +54,7 @@ const NAV_ITEMS: NavItem[] = [
  // { label: "Notificaciones", path: "/notifications", icon: <NotificationsIcon />, module: "notifications" },
   { label: "Reportes", path: "/reports", icon: <AssessmentIcon />, module: "reports" },
   { label: "Pagos", path: "/payments", icon: <PaymentIcon />, module: "billing" },
+  { label: "Promociones", path: "/promotions", icon: <CreditCardIcon />, module: "billing" },
   { label: "Nutrición", path: "/nutrition", icon: <RestaurantIcon />, module: "nutrition" },
   { label: "Entrenamiento", path: "/training", icon: <DirectionsRunIcon />, module: "training" },
 ];
@@ -113,19 +114,18 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
 
   const drawerContent = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Logo / marca */}
       <Toolbar
         sx={{
           px: collapsed ? 1.5 : 2.5,
           justifyContent: collapsed ? "center" : "space-between",
-          minHeight: 64,
+          minHeight: 54,
         }}
       >
         {!collapsed && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Box
               sx={{
-                width: 36,
+                width: 46,
                 height: 36,
                 borderRadius: 2,
                 bgcolor: "primary.main",
@@ -178,12 +178,11 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
 
       <Divider />
 
-      {/* Navegación */}
-      <List sx={{ flexGrow: 1, px: 1, py: 2 }}>
+      <List sx={{ flexGrow: 1, px: collapsed ? 0.75 : 1, py: 1.5 }}>
         {visibleItems.map((item) => {
           const active = isActive(item.path);
           const button = (
-            <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
+            <ListItem key={item.path} disablePadding sx={{ mb: 0.25 }}>
               <ListItemButton
                 onClick={() => {
                   navigate(item.path);
@@ -192,8 +191,8 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
                 selected={active}
                 sx={{
                   borderRadius: 2,
-                  minHeight: 44,
-                  px: collapsed ? 1.5 : 2,
+                  minHeight: 50,
+                  px: collapsed ? 1 : 1.5,
                   justifyContent: collapsed ? "center" : "flex-start",
                   bgcolor: active ? "primary.main" : "transparent",
                   color: active ? "primary.contrastText" : "text.primary",
@@ -235,7 +234,6 @@ export function Sidebar({ mobileOpen, collapsed, onCloseMobile, onToggleCollapse
         })}
       </List>
 
-      {/* Footer: botón colapsar */}
       <Box sx={{ p: 1, borderTop: 1, borderColor: "divider", display: { xs: "none", md: "block" } }}>
         <ListItemButton
           onClick={onToggleCollapse}

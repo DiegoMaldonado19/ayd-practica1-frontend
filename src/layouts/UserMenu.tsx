@@ -34,9 +34,10 @@ export function UserMenu() {
 
   return (
     <>
+    
       <Box sx={{ display: { xs: "none", sm: "block" }, textAlign: "right" }}>
-        <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-          {user.full_name}
+        <Typography variant="body2" sx={{ fontWeight: 400, lineHeight: 1.2 }}>
+          {user.full_name}  
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1 }}>
           {ROLE_LABEL[user.role]}
