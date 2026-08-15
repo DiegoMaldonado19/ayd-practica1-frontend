@@ -17,21 +17,18 @@ export function hasAnyRole(role: Role | undefined, allowed: Role[]): boolean {
   return role !== undefined && allowed.includes(role);
 }
 
-/**
- * Which roles may see each frontend module. Extended as modules beyond
- * `auth` are built — kept here per 02-Modulos.md §4: "auth/permissions.ts
- * centraliza qué puede ver cada rol". The backend re-checks everything;
- * this only decides what the UI renders.
- */
 export const MODULE_ACCESS = {
   dashboard: ROLES,
   members: ["ADMIN", "RECEPTIONIST", "TRAINER"] as Role[],
+   employees: ["ADMIN"] as Role[],          
+  trainers: ROLES,                         
+  membershipPlans: ["ADMIN"] as Role[],    
   memberships: ["ADMIN", "RECEPTIONIST"] as Role[],
   billing: ["ADMIN", "RECEPTIONIST"] as Role[],
   access: ["ADMIN", "RECEPTIONIST"] as Role[],
   classes: ROLES,
   training: ["ADMIN", "TRAINER", "MEMBER"] as Role[],
-  nutrition: ["TRAINER", "MEMBER"] as Role[],
+  nutrition: ["ADMIN", "TRAINER", "MEMBER"] as Role[],
   notifications: ROLES,
   reports: ["ADMIN"] as Role[],
 } satisfies Record<string, Role[]>;

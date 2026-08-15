@@ -1,6 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import * as authService from "./services";
-import type { LoginRequest, PasswordRecoveryRequest, PasswordResetRequest, VerificationRequest } from "./types";
+import type {
+  ChangePasswordRequest,
+  LoginRequest,
+  PasswordRecoveryRequest,
+  PasswordResetRequest,
+  TwoFactorPreferenceRequest,
+  VerificationRequest,
+} from "./types";
 
 export function useLoginMutation() {
   return useMutation({
@@ -23,5 +30,17 @@ export function useRecoverPasswordMutation() {
 export function useResetPasswordMutation() {
   return useMutation({
     mutationFn: (request: PasswordResetRequest) => authService.resetPassword(request),
+  });
+}
+
+export function useChangePasswordMutation() {
+  return useMutation({
+    mutationFn: (request: ChangePasswordRequest) => authService.changePassword(request),
+  });
+}
+
+export function useUpdateTwoFactorMutation() {
+  return useMutation({
+    mutationFn: (request: TwoFactorPreferenceRequest) => authService.updateTwoFactorPreference(request),
   });
 }

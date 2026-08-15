@@ -9,9 +9,11 @@ import {
   CircularProgress,
   Divider,
   Stack,
+  Menu,
+  MenuItem,
 } from "@mui/material";
-//import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-//import EditIcon from "@mui/icons-material/Edit";
+import { ArrowBack, Edit, MoreVert } from "@mui/icons-material";
+import { useState } from "react";
 import { useMember, useUpdateMemberStatus } from "@/modules/members/hooks";
 import type { MemberStatus } from "@/modules/members/types";
 
@@ -27,10 +29,20 @@ const statusColor: Record<MemberStatus, "success" | "default" | "error"> = {
   WITHDRAWN: "error",
 };
 
-function Field({ label, value }: { label: string; value: string | null | undefined }) {
+function Field({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null | undefined;
+}) {
   return (
     <Box>
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ display: "block", mb: 0.5 }}
+      >
         {label}
       </Typography>
       <Typography variant="body1" sx={{ fontWeight: 500 }}>
@@ -45,10 +57,16 @@ export function MemberDetailPage() {
   const { memberId } = useParams();
   const { data: member, isLoading, isError } = useMember(Number(memberId));
   const updateStatus = useUpdateMemberStatus(Number(memberId));
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="60vh"
+      >
         <CircularProgress />
       </Box>
     );
@@ -62,8 +80,15 @@ export function MemberDetailPage() {
     );
   }
 
-  const nextStatus: MemberStatus =
-    member.status === "ACTIVE" ? "WITHDRAWN" : "ACTIVE";
+  const handleStatusChange = (newStatus: MemberStatus) => {
+    updateStatus.mutate(newStatus);
+    setAnchorEl(null);
+  };
+
+  const allStatuses: MemberStatus[] = ["ACTIVE", "INACTIVE", "WITHDRAWN"];
+  const availableStatuses = allStatuses.filter(
+    (status) => status !== member.status
+  );
 
   return (
     <Box
@@ -82,35 +107,58 @@ export function MemberDetailPage() {
         sx={{ mb: 3 }}
       >
         <Box>
+          <Button
+            startIcon={<ArrowBack />}
+            onClick={() => navigate("/members")}
+            sx={{ mb: 1 }}
+          >
+            Regresar al listado
+          </Button>
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
             {member.person.full_name}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Revisa la información del socio, actualiza sus datos o cambia su estado.
+            Revisa la información del socio, actualiza sus datos o cambia su
+            estado.
           </Typography>
         </Box>
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-<Button
-  variant="outlined"
-  onClick={() => navigate("/members")}
->
-  Regresar al listado
-</Button>
-<Button
-  variant="outlined"
-  onClick={() => navigate(`/members/${memberId}/edit`)}
->
-  Editar
-</Button>
+          <Button
+            variant="outlined"
+            startIcon={<Edit />}
+            onClick={() => navigate(`/members/${memberId}/edit`)}
+          >
+            Editar
+          </Button>
+
           <Button
             variant="outlined"
             color={member.status === "ACTIVE" ? "error" : "success"}
-            disabled={updateStatus.isPending}
-            onClick={() => updateStatus.mutate(nextStatus)}
+            disabled={updateStatus.isPending || availableStatuses.length === 0}
+            onClick={(e) => setAnchorEl(e.currentTarget)}
+            endIcon={<MoreVert />}
           >
-            {member.status === "ACTIVE" ? "Dar de baja" : "Reactivar"}
+            Cambiar estado
           </Button>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={() => setAnchorEl(null)}
+          >
+            {availableStatuses.map((status) => (
+              <MenuItem
+                key={status}
+                onClick={() => handleStatusChange(status)}
+                disabled={updateStatus.isPending}
+              >
+                {status === "ACTIVE" && "Reactivar"}
+                {status === "INACTIVE" && "Suspender"}
+                {status === "WITHDRAWN" && "Dar de baja"}
+              </MenuItem>
+            ))}
+          </Menu>
         </Stack>
       </Stack>
 
