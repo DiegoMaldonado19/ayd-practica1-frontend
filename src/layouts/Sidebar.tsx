@@ -74,6 +74,7 @@ const NAV_ITEMS: NavItem[] = [
   // { label: "Notificaciones", path: "/notifications", icon: <NotificationsIcon />, module: "notifications" },
   { label: "Reportes", path: "/reports", icon: <AssessmentIcon />, module: "reports" },
   { label: "Pagos", path: "/payments", icon: <PaymentIcon />, module: "billing" },
+  { label: "Mis pagos", path: "/payments/me", icon: <PaymentIcon />, module: "billing", roles: ["MEMBER"] },
   { label: "Promociones", path: "/promotions", icon: <CreditCardIcon />, module: "billing" },
   { label: "Nutrición", path: "/nutrition", icon: <RestaurantIcon />, module: "nutrition" },
   {

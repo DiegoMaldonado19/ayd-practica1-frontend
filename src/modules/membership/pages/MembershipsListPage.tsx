@@ -36,6 +36,7 @@ import type {
 import { MemberSelect } from "@/modules/membership/components/MemberSelect";
 import type { Member } from "@/modules/members/types";
 import { AppDatePicker } from "@/components/AppDatePicker";
+import { useAuth } from "@/auth/useAuth";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -179,6 +180,8 @@ function ContractDialog({
 
 export function MembershipsListPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
 
   const [status, setStatus] = useState<MembershipStatus | "">("");
   const [planId, setPlanId] = useState<number | "">("");
@@ -258,13 +261,15 @@ export function MembershipsListPage() {
         }}
       >
         <Typography variant="h4">Membresías</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setDialogOpen(true)}
-        >
-          Contratar membresía
-        </Button>
+        {isAdmin && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setDialogOpen(true)}
+          >
+            Contratar membresía
+          </Button>
+        )}
       </Box>
 
       <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
