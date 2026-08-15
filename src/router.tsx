@@ -8,6 +8,7 @@ import { ForgotPasswordPage } from "@/modules/auth/pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/modules/auth/pages/ResetPasswordPage";
 import { DashboardPage } from "@/modules/dashboard/pages/DashboardPage";
 import { SecuritySettingsPage } from "@/modules/auth/pages/SecuritySettingsPage";
+import { MyProfilePage } from "@/modules/auth/pages/MyProfilePage";
 import { MembersListPage } from "@/modules/members/pages/MembersListPage";
 import { MemberFormPage } from "@/modules/members/pages/MemberFormPage";
 import { MemberDetailPage } from "@/modules/members/pages/MemberDetailPage";
@@ -65,6 +66,16 @@ export const router = createBrowserRouter([
         
           { path: "/dashboard", element: <DashboardPage /> },
           { path: "/account/security", element: <SecuritySettingsPage /> },
+          {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST", "TRAINER", "MEMBER"]} />,
+            children: [{ path: "/account/profile", element: <MyProfilePage /> }],
+          },
+          {
+            // A member may edit their own file (MemberService.assertOwnFile allows it;
+            // the backend, not this gate, is what actually enforces "own file only").
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST", "MEMBER"]} />,
+            children: [{ path: "/members/:memberId/edit", element: <MemberFormPage /> }],
+          },
 
           {
             element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
@@ -72,7 +83,6 @@ export const router = createBrowserRouter([
               { path: "/members", element: <MembersListPage /> },
               { path: "/members/new", element: <MemberFormPage /> },
               { path: "/members/:memberId", element: <MemberDetailPage /> },
-              { path: "/members/:memberId/edit", element: <MemberFormPage /> },
 
               {
                 path: "/access",

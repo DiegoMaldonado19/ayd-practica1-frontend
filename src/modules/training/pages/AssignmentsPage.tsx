@@ -52,12 +52,12 @@ export function AssignmentsPage() {
   const columnDefs = useMemo<ColDef<TrainerAssignment>[]>(
     () => [
       { field: "member_id", headerName: "ID del socio", width: 120 },
-      { field: "trainer_id", headerName: "ID del entrenador", width: 140 },
+      { field: "trainer_id", headerName: "ID del entrenador", width: 150 },
       { field: "start_date", headerName: "Inicio", width: 130 },
       { field: "end_date", headerName: "Fin", width: 130, valueGetter: (p) => p.data?.end_date ?? "—" },
       {
         headerName: "Motivo de cierre",
-        width: 180,
+        flex: 1,
         valueGetter: (p) => (p.data?.end_reason ? END_REASON_LABEL[p.data.end_reason] : "—"),
       },
       {

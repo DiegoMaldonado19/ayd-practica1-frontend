@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -27,6 +28,7 @@ function getInitials(name: string): string {
 
 export function UserMenu() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -101,13 +103,13 @@ export function UserMenu() {
 
         <Divider />
 
-        <MenuItem>
+        <MenuItem onClick={() => navigate("/account/profile")}>
           <ListItemIcon>
             <PersonIcon fontSize="small" />
           </ListItemIcon>
           Mi perfil
         </MenuItem>
-        <MenuItem>
+        <MenuItem onClick={() => navigate("/account/security")}>
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>

@@ -8,7 +8,7 @@ import Divider from "@mui/material/Divider";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useMember } from "@/modules/members/hooks";
 import { useAuth } from "@/auth/useAuth";
 import {
