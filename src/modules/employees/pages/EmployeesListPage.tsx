@@ -1,29 +1,14 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button, TextField, MenuItem, Chip, Paper } from "@mui/material";
+import { Box, Typography, Button, TextField, MenuItem, Paper } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
 import { ModuleRegistry, AllCommunityModule, themeMaterial } from "ag-grid-community";
 import type { ColDef } from "ag-grid-community";
 import { useEmployees } from "@/modules/employees/hooks";
-import type { Employee, EmployeeStatus, Position } from "@/modules/employees/types";
+import type { Employee, Position } from "@/modules/employees/types";
+import { buildEmployeesColumns } from "@/modules/employees/components/EmployeeColumns";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
-
-const statusLabel: Record<EmployeeStatus, string> = {
-  ACTIVE: "Activo",
-  SUSPENDED: "Suspendido",
-  TERMINATED: "Terminado",
-};
-const statusColor: Record<EmployeeStatus, "success" | "warning" | "error"> = {
-  ACTIVE: "success",
-  SUSPENDED: "warning",
-  TERMINATED: "error",
-};
-const positionLabel: Record<Position, string> = {
-  ADMIN: "Administrador",
-  RECEPTIONIST: "Recepcionista",
-  TRAINER: "Entrenador",
-};
 
 export function EmployeesListPage() {
   const navigate = useNavigate();
@@ -38,26 +23,7 @@ export function EmployeesListPage() {
     position: position || undefined,
   });
 
-  const columnDefs = useMemo<ColDef<Employee>[]>(
-    () => [
-      { field: "employee_code", headerName: "Código", width: 130 },
-      { headerName: "Nombre", valueGetter: (p) => p.data?.person.full_name, flex: 1 },
-      {
-        headerName: "Puesto",
-        width: 160,
-        valueGetter: (p) => (p.data ? positionLabel[p.data.position] : ""),
-      },
-      { field: "hired_on", headerName: "Contratado", width: 130 },
-      {
-        headerName: "Estado",
-        width: 140,
-        cellRenderer: (p: { data: Employee }) => (
-          <Chip size="small" label={statusLabel[p.data.status]} color={statusColor[p.data.status]} />
-        ),
-      },
-    ],
-    []
-  );
+  const columnDefs = useMemo<ColDef<Employee>[]>(() => buildEmployeesColumns(), []);
 
   return (
     <Box sx={{ p: 3 }}>
