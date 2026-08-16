@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ArrowBack, Edit, MoreVert } from "@mui/icons-material";
+import { useAuth } from "@/auth/useAuth";
 import { useMember, useUpdateMemberStatus } from "@/modules/members/hooks";
 import type { MemberStatus } from "@/modules/members/types";
 import { MemberStatusChip } from "@/modules/members/components/MemberStatusChip";
@@ -24,6 +25,10 @@ import {
 export function MemberDetailPage() {
   const navigate = useNavigate();
   const { memberId } = useParams();
+  const { user } = useAuth();
+  // PATCH /members/{id}/status es exclusivo de ADMIN; el recepcionista llega a esta
+  // pantalla pero no puede cambiar el estado.
+  const isAdmin = user?.role === "ADMIN";
   const { data: member, isLoading, isError } = useMember(Number(memberId));
   const updateStatus = useUpdateMemberStatus(Number(memberId));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -84,25 +89,29 @@ export function MemberDetailPage() {
             Editar
           </Button>
 
-          <Button
-            variant="outlined"
-            color={member.status === "ACTIVE" ? "error" : "success"}
-            disabled={updateStatus.isPending || availableStatuses.length === 0}
-            onClick={(e) => setAnchorEl(e.currentTarget)}
-            endIcon={<MoreVert />}
-          >
-            Cambiar estado
-          </Button>
+          {isAdmin && (
+            <>
+              <Button
+                variant="outlined"
+                color={member.status === "ACTIVE" ? "error" : "success"}
+                disabled={updateStatus.isPending || availableStatuses.length === 0}
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+                endIcon={<MoreVert />}
+              >
+                Cambiar estado
+              </Button>
 
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-            {availableStatuses.map((status) => (
-              <MenuItem key={status} onClick={() => handleStatusChange(status)} disabled={updateStatus.isPending}>
-                {status === "ACTIVE" && "Reactivar"}
-                {status === "INACTIVE" && "Suspender"}
-                {status === "WITHDRAWN" && "Dar de baja"}
-              </MenuItem>
-            ))}
-          </Menu>
+              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+                {availableStatuses.map((status) => (
+                  <MenuItem key={status} onClick={() => handleStatusChange(status)} disabled={updateStatus.isPending}>
+                    {status === "ACTIVE" && "Reactivar"}
+                    {status === "INACTIVE" && "Suspender"}
+                    {status === "WITHDRAWN" && "Dar de baja"}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </>
+          )}
         </Stack>
       </Stack>
 

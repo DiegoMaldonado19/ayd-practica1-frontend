@@ -1,125 +1,256 @@
 # Fitness App — Frontend
 
-Frontend del Sistema de Gestión de Gimnasio (Práctica 1, Análisis y Diseño de Sistemas 1 — USAC CUNOC).
-React 19 + TypeScript + Vite, consumiendo el backend Spring Boot en `Backend/Fitness-App` a través de
+SPA del Sistema de Gestión de Gimnasio (Práctica 1, Análisis y Diseño de Sistemas 1 — USAC CUNOC).
+React + TypeScript + Vite, consumiendo el backend Spring Boot de `Backend/Fitness-App` en
 `/api/v1`.
 
-## Stack
+**13 módulos de negocio, 52 rutas, 4 roles.** El manual técnico del sistema completo está en
+[`Backend/Fitness-App/Docs/Manual-Tecnico.md`](../../Backend/Fitness-App/Docs/Manual-Tecnico.md).
 
-- **React 19** + **TypeScript** + **Vite** (con React Compiler habilitado).
-- **MUI (Material UI)** — componentes de interfaz, `@mui/lab` para `LoadingButton`.
-- **React Router (`react-router-dom` v7)** — enrutamiento y guardas de ruta.
-- **TanStack Query (`@tanstack/react-query`)** — llamadas HTTP como mutaciones/consultas.
-- **Axios** — cliente HTTP.
-- **React Hook Form + Yup (`@hookform/resolvers`)** — formularios y validación.
-- **notistack** — notificaciones tipo *snackbar*.
+---
 
-## Requisitos
+## Tecnologías
 
-- **Node.js 20.19+ o 22+** (el pipeline de CI usa Node 24). Con una versión anterior, `npm run lint`
-  falla con `TypeError: util.styleText is not a function`, porque ESLint 10 depende de una API de
-  `node:util` que no existe en versiones viejas de Node. Verifica tu versión con `node -v` y actualiza
-  (por ejemplo con `nvm install 24 && nvm use 24`) si es necesario.
-- El backend (`Backend/Fitness-App`) corriendo en `http://localhost:8080` para que los flujos de
-  autenticación funcionen contra datos reales.
+Versiones resueltas de `package-lock.json`, no los rangos de `package.json`.
 
-## Configuración
+| Componente | Versión | Para qué |
+|---|---|---|
+| React | **19.2.8** | Interfaz. React Compiler habilitado vía Babel |
+| TypeScript | **6.0.3** | Tipado. `types.ts` de cada módulo copia los DTOs del backend |
+| Vite | **8.2.1** | Servidor de desarrollo y build |
+| MUI (Material UI) | **5.18.0** | Componentes. `@mui/lab` para `LoadingButton` |
+| Emotion | **11.14** | Motor de estilos de MUI (`sx`) |
+| React Router | **7.18.2** | Enrutamiento y guardas por rol |
+| TanStack Query | **5.101.4** | Consultas, mutaciones y caché de la API |
+| Axios | **1.19.0** | Cliente HTTP con interceptores de token y de 401 |
+| React Hook Form | **7.85.0** | Formularios |
+| Yup + `@hookform/resolvers` | **1.7.1** / **5.8.0** | Esquemas de validación |
+| AG Grid | **36.1.0** | Tablas de listados (socios, empleados, visitas, clases) |
+| MUI X Date Pickers | **7.29.4** | Selectores de fecha, con adaptador dayjs y locale `es` |
+| dayjs | **1.11.21** | Fechas |
+| notistack | **3.0.2** | Notificaciones tipo *snackbar* |
+| ESLint | **10.8.1** | Linter, con `typescript-eslint` 8.67 |
+| Node.js | **24** en CI | Requiere **20.19+ o 22+** como mínimo |
 
-1. Instalar dependencias:
+> Con Node anterior a 20.19, `npm run lint` falla con `TypeError: util.styleText is not a function`:
+> ESLint 10 usa una API de `node:util` que no existe en versiones viejas. Verifica con `node -v` y
+> actualiza (`nvm install 24 && nvm use 24`).
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Copiar las variables de entorno:
+## Desarrollo local
 
-   ```bash
-   cp .env.example .env.local
-   ```
+El backend tiene que estar arriba primero: sin él, solo carga la pantalla de login.
 
-   | Variable | Descripción |
-   |---|---|
-   | `VITE_API_BASE_URL` | Raíz del backend, **sin** `/api/v1` (el cliente HTTP lo agrega). Ej: `http://localhost:8080`. |
+```bash
+# 1. En Backend/Fitness-App
+docker compose up -d --wait          # API en :8080
 
-## Scripts
+# 2. Aquí
+npm ci
+cp .env.example .env.local
+npm run dev                          # SPA en :5173
+```
+
+Entra con `admin` / `Admin123*` (el administrador sembrado por el backend).
+
+### Variables de entorno
+
+| Variable | Descripción |
+|---|---|
+| `VITE_API_BASE_URL` | Raíz del backend, **sin** `/api/v1` (el cliente lo agrega). Ej: `http://localhost:8080` |
+| `VITE_USE_POLLING` | Solo para Docker/WSL: fuerza al watcher de Vite a hacer polling. Vacío en local |
+
+### CORS: los dos valores tienen que casar
+
+El SPA y la API viven en **puertos distintos**, así que toda llamada cruza origen. No hay proxy: el
+navegador va directo a `:8080`. Si no coinciden, el navegador bloquea la respuesta:
+
+| Repositorio | Variable | Local | En la EC2 |
+|---|---|---|---|
+| Frontend | `VITE_API_BASE_URL` | `http://localhost:8080` | `http://18.227.211.214:8080` |
+| Backend | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | `http://18.227.211.214:5173` |
+
+### Scripts
 
 | Comando | Qué hace |
 |---|---|
-| `npm run dev` | Levanta el servidor de desarrollo de Vite. |
-| `npm run build` | `tsc -b && vite build` — type-checking y build de producción. |
-| `npm run lint` | ESLint sobre todo el proyecto. |
-| `npm run preview` | Sirve el build de producción localmente. |
+| `npm run dev` | Servidor de desarrollo de Vite |
+| `npm run build` | `tsc -b && vite build` — type-check y build de producción |
+| `npm run lint` | ESLint sobre todo el proyecto |
+| `npm run preview` | Sirve el build de producción localmente |
 
-## Estructura del proyecto
+CI corre `npm ci`, `npm run lint` y `npm run build` en cada push, así que los tres tienen que pasar
+antes de abrir un PR.
+
+---
+
+## Gitflow
+
+Idéntico al del backend. Tres niveles de rama, sin commits directos a las dos protegidas:
+
+```
+                    PR                     PR
+rama de trabajo  ──────▶   stage   ───────────▶   main
+(sale de stage)          (integración)          (producción)
+```
+
+1. **`main`** — lo desplegado. Solo entra por PR desde `stage`.
+2. **`stage`** — integración. Solo entra por PR desde una rama de trabajo.
+3. **Ramas de trabajo** — se crean **desde `stage`**, nunca desde `main`.
+
+Nombres tal como aparecen en el historial: `feature/<tema>` (`feature/billing`, `feature/classes`,
+`feature/directory-members`) y `dmaldonado/<tema>` (`dmaldonado/final-audit`).
+
+```bash
+git checkout stage && git pull origin stage
+git checkout -b feature/<tema>
+# ...trabajo...
+git push -u origin feature/<tema>     # abre PR contra stage
+```
+
+| Rama | `build` (lint + tsc + vite) | `docker-push` | `deploy` |
+|---|:--:|:--:|:--:|
+| rama de trabajo | sí | no | no |
+| `stage` | sí | no | no |
+| `main` | sí | sí | sí |
+
+---
+
+## Estructura
+
+Arquitectura **por feature**: cada módulo de negocio es autocontenido y sigue siempre el mismo
+contrato interno. Lo transversal vive fuera de `src/modules/`.
 
 ```
 src/
-├── main.tsx                 # Punto de entrada; carga las fuentes de @fontsource/roboto
-├── App.tsx                  # Providers: React Query, tema de MUI, notistack, AuthProvider, router
-├── router.tsx                # Árbol de rutas de toda la aplicación
-├── theme.ts                  # Tema de MUI
+├── main.tsx                  punto de entrada; carga las fuentes de @fontsource/roboto
+├── App.tsx                   providers: React Query, tema MUI, notistack, AuthProvider, router
+├── router.tsx                las 52 rutas y sus guardas por rol
+├── theme.ts                  tema de MUI
 │
 ├── api/
-│   ├── client.ts              # Instancia de axios: base URL, interceptor de Bearer token, manejo de 401
-│   └── types.ts               # ErrorResponse, Page<T> y helpers para traducir errores del backend
+│   ├── client.ts             instancia de axios: baseURL, Bearer token, manejo de 401
+│   └── types.ts              Page<T>, ErrorResponse, getErrorMessage(), getErrorCode()
 │
 ├── auth/
-│   ├── AuthContext.tsx         # Sesión (usuario, estado), setSession(), logout()
-│   ├── ProtectedRoute.tsx      # Guardas de ruta: ProtectedRoute (requiere sesión) y PublicOnlyRoute
-│   └── permissions.ts          # Enum de roles y qué módulo puede ver cada rol
+│   ├── AuthContext.tsx       sesión (usuario, token), setSession(), logout()
+│   ├── useAuth.ts            hook de acceso a la sesión
+│   ├── ProtectedRoute.tsx    ProtectedRoute (requiere sesión + roles) y PublicOnlyRoute
+│   └── permissions.ts        ROLES, ROLE_LABEL, hasAnyRole(), MODULE_ACCESS, canAccessModule()
 │
-├── layouts/
-│   ├── PublicLayout.tsx        # Layout centrado para las pantallas públicas (login, recuperación)
-│   └── AppLayout.tsx           # Layout con barra superior para las pantallas autenticadas
+├── layouts/                  AppLayout (barra + Sidebar + UserMenu), PublicLayout
+├── components/               AppDatePicker, SimpleBarChart, TrendLineChart
 │
-└── modules/
-    ├── auth/                   # Módulo de autenticación (detalle abajo)
-    └── dashboard/               # Panel placeholder; el panel real se construye por rol más adelante
+└── modules/                  13 módulos de negocio
+    ├── auth            login, verificación 2FA, recuperación, seguridad de la cuenta, perfil
+    ├── dashboard       panel por rol: AdminPanel, ReceptionistPanel, TrainerPanel, MemberPanel
+    ├── members         alta, edición, detalle y estado de socios
+    ├── employees       alta, edición, detalle y estado de empleados
+    ├── trainers        listado, carga máxima, especialidades, transferencia de cartera
+    ├── membership      planes y beneficios, contratación, congelamiento, renovación, cancelación
+    ├── billing         pagos, confirmación, anulación, comprobantes, promociones
+    ├── access          check-in / check-out y pases de invitado
+    ├── classes         cartelera, clases, sesiones, inscripción, lista de espera, asistencia
+    ├── training        asignaciones, rutinas, mediciones de progreso, notas, alertas, ejercicios
+    ├── nutrition       catálogo de alimentos, registro de comidas, meta calórica, resumen
+    ├── reports         los 9 reportes y su exportación a CSV/XLSX/PDF/PNG
+    └── notifications   campana e inbox
 ```
 
-Cada módulo de negocio (`auth`, y los que sigan: `members`, `memberships`, `billing`, etc.) sigue la
-misma forma interna: `pages/` (una pantalla por ruta), `components/` (propios del módulo), `services.ts`
-(llamadas HTTP), `types.ts` (copia literal de los DTO del backend) y, cuando aplica, `schemas.ts`
-(validación) y `hooks.ts` (mutaciones/consultas de React Query).
+### Contrato interno de un módulo
 
-## Rutas
+Siempre los mismos archivos, en el mismo orden de dependencia:
 
-| Ruta | Página | Layout | Acceso |
-|---|---|---|---|
-| `/login` | `LoginPage` | `PublicLayout` | Solo sin sesión (`PublicOnlyRoute`) |
-| `/verify-code` | `VerifyCodePage` | `PublicLayout` | Solo sin sesión. Requiere `challenge_id` en el estado de navegación (llegar por otra vía redirige a `/login`) |
-| `/forgot-password` | `ForgotPasswordPage` | `PublicLayout` | Solo sin sesión |
-| `/reset-password` | `ResetPasswordPage` | `PublicLayout` | Solo sin sesión. Requiere estado de navegación con el reto de recuperación (si no, redirige a `/forgot-password`) |
-| `/` | `DashboardPage` | `AppLayout` | Requiere sesión (`ProtectedRoute`) |
-| `*` | — | — | Redirige a `/` |
+```
+services.ts   → llamadas HTTP con apiClient. Una función por endpoint, sin lógica
+hooks.ts      → useQuery / useMutation sobre services.ts. Aquí viven los snackbars
+                y las invalidaciones de caché
+types.ts      → copia literal de los DTOs del backend, en snake_case
+*Schema.ts    → esquemas de Yup (cuando el módulo tiene formularios)
+pages/        → una pantalla por ruta
+components/   → componentes propios del módulo
+```
 
-`ProtectedRoute` acepta opcionalmente `allowedRoles` para restringir una rama de rutas a ciertos roles;
-si el rol no alcanza, redirige a `/`. La ocultación en la interfaz es solo cosmética: **el backend es
-quien prohíbe de verdad** cada endpoint según el rol.
+Una pantalla nunca llama a `apiClient` directamente: pasa por `hooks.ts`, que pasa por
+`services.ts`. Así el manejo de error y la invalidación de caché quedan en un solo lugar por
+operación.
 
-## Módulo de autenticación (`src/modules/auth`)
+---
 
-Implementado contra los endpoints reales de `iam` (`/auth/*`, `/users/me/*`):
+## Convenciones
 
-1. **Login** (`POST /auth/login` con `{ username, password }`):
-   - `200` → sesión inmediata (`access_token` + perfil del usuario).
-   - `202` → el usuario tiene doble factor activo; se navega a `/verify-code` con el `challenge_id`,
-     el canal y el destino enmascarado en el estado de la ruta (nunca en la URL ni en `localStorage`,
-     para no dejar rastro de un reto vigente).
-2. **Verificación de código** (`POST /auth/challenges/{id}/verifications`): canjea el código de 6 dígitos
-   por la sesión. Si se llega a la pantalla sin un reto activo, redirige a `/login`.
-3. **Recuperar contraseña** (`POST /auth/password-recoveries`): pide el usuario, envía un código y pasa
-   a `/reset-password` con el reto de recuperación.
-4. **Restablecer contraseña** (`POST /auth/password-resets`): canjea el código junto con la nueva
-   contraseña (con confirmación en el formulario) y regresa a `/login`.
+- **Idioma**: código, nombres de archivo, componentes y comentarios en inglés. Los textos de la
+  interfaz y la documentación, en español.
+- **Alias `@/`** apunta a `src/`. Los imports entre módulos siempre lo usan; dentro de un módulo se
+  permite el relativo (`./types`).
+- **`types.ts` copia el DTO del backend tal cual**, en `snake_case`. No se renombra a camelCase: lo
+  que se ve en el tipo es lo que viaja por la red, y eso hace que un desajuste salte al leer.
+- **Las guardas de ruta son cosméticas.** `ProtectedRoute` y `MODULE_ACCESS` deciden qué se muestra;
+  **quien prohíbe de verdad es el backend**, que responde 403 por rol y valida además la propiedad
+  de la fila. Ocultar un botón es UX, no seguridad — pero **una pantalla nunca debe montar una
+  consulta que su rol no puede hacer**: eso produce un 403 silencioso. Para eso los hooks
+  compartidos aceptan `enabled` (ver `useClassSessionEnrollments`, `useMembers`).
+- **Responsividad con breakpoints de MUI** (`sx={{ px: { xs: 2, md: 4 } }}`, props `xs`/`sm`/`md` de
+  `Grid`). No hay CSS propio más allá de `index.css`, ni media queries a mano.
+- **Los errores del backend se muestran con `getErrorMessage(error, fallback)`** de `@/api/types`,
+  que extrae el `message` del `ErrorResponse`. Nunca un texto genérico si el servidor explicó el
+  motivo.
+- **Formularios**: React Hook Form + resolver de Yup, con el esquema en `<algo>FormSchema.ts`.
 
-`AuthContext` guarda únicamente el `access_token` en `localStorage`. Al montar la aplicación, si hay un
-token, se llama a `GET /auth/me` para recuperar el perfil; si el token ya venció, se descarta en
-silencio y el usuario cae a `/login`. El interceptor de `axios` en `api/client.ts` limpia el token y
-redirige a `/login` ante cualquier `401` que ocurra **con un token ya adjunto** (sesión vencida) — un
-`401` en un endpoint público (por ejemplo, credenciales inválidas en el login) no dispara ese redirect:
-se deja como error del formulario.
+---
 
-Pendiente, fuera del alcance de esta primera pasada: pantalla de ajustes para cambiar la contraseña
-propia (`PUT /users/me/password`) y activar/desactivar el doble factor (`PATCH /users/me/two-factor`).
-Los servicios ya existen en `modules/auth/services.ts`; falta la pantalla que los use.
+## Dependencias
+
+| Dependencia | Rol |
+|---|---|
+| **react / react-dom** | Base de la interfaz |
+| **react-router-dom** | Las 52 rutas, layouts anidados y guardas por rol |
+| **@tanstack/react-query** | Estado del servidor: caché, invalidación, `isPending` de cada mutación |
+| **axios** | Cliente HTTP. Un interceptor agrega el Bearer; otro limpia la sesión ante un 401 con token |
+| **@mui/material + @mui/icons-material + @mui/lab** | Todo el sistema de componentes |
+| **@emotion/react + @emotion/styled** | Motor de estilos que MUI 5 requiere |
+| **@mui/x-date-pickers + dayjs** | Selectores de fecha en español |
+| **ag-grid-community + ag-grid-react** | Tablas con paginación y filtros de los listados grandes |
+| **react-hook-form + @hookform/resolvers + yup** | Formularios y validación |
+| **notistack** | Snackbars de éxito y error de las mutaciones |
+| **@fontsource/roboto** | Fuente servida localmente, sin pedirla a Google |
+| **babel-plugin-react-compiler** | React Compiler: memoización automática en build |
+
+---
+
+## Autenticación
+
+1. **Login** (`POST /auth/login`):
+   - `200` → sesión inmediata (`access_token` + perfil).
+   - `202` → la cuenta tiene doble factor; se navega a `/verify-code` con el `challenge_id`, el
+     canal y el destino enmascarado **en el estado de la ruta**, nunca en la URL ni en
+     `localStorage`.
+2. **Verificación** (`POST /auth/challenges/{id}/verifications`): canjea el código de 6 dígitos por
+   la sesión. Llegar a esa pantalla sin reto activo redirige a `/login`.
+3. **Recuperación** (`POST /auth/password-recoveries` → `POST /auth/password-resets`).
+
+`AuthContext` guarda **solo el token** en `localStorage` (`fitness_app.access_token`). Al montar la
+aplicación, si hay token, llama a `GET /auth/me` para recuperar el perfil; si venció, lo descarta en
+silencio y cae a `/login`.
+
+El perfil incluye `member_id` cuando la cuenta es de un socio — lo emiten el login, el canje del
+reto y `/auth/me`. Las pantallas "mías" (`/nutrition/me`, `/training/me`, `/payments/me`) se apoyan
+en él.
+
+El interceptor de `api/client.ts` limpia el token y redirige a `/login` ante un `401` **que ocurrió
+con un token ya adjunto** (sesión vencida). Un `401` en un endpoint público —credenciales malas en
+el login— no dispara el redirect: se muestra como error del formulario.
+
+---
+
+## Despliegue
+
+`docker-push` y `deploy` solo corren en `main`. El paso de despliegue entra por SSH a la EC2, hace
+`git pull`, **escribe el `.env` del servidor** con `VITE_API_BASE_URL=http://<SERVER_HOST>:8080`,
+levanta compose y verifica con un `curl` a `:5173`.
+
+Secretos que consume: `EC2_SSH_KEY`, `SERVER_USER`, `SERVER_HOST`, `REPO_PATH` y `DOCKER_HUB_TOKEN`.
+
+> El contenedor sirve el **servidor de desarrollo de Vite**, no un build estático detrás de nginx.
+> Es una decisión consciente y está explicada en el Manual Técnico, sección 8.

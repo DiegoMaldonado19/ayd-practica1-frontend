@@ -210,7 +210,7 @@ export function ClassDetailPage() {
                 <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", sm: "center" }} spacing={1}>
                   <Box>
                     <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                      {session.date} · {session.start_time}
+                      {session.session_date} · {session.start_time}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {session.status ? `Estado: ${session.status}` : "Estado: sin definir"}

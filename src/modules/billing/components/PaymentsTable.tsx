@@ -1,5 +1,6 @@
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -7,7 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { Receipt as ReceiptIcon } from "@mui/icons-material";
+import { Block as BlockIcon, CheckCircle as CheckCircleIcon, Receipt as ReceiptIcon } from "@mui/icons-material";
 import type { Payment } from "@/modules/billing/types";
 import {
   computePaymentAmounts,
@@ -23,13 +24,18 @@ export function PaymentsTable({
   isLoading,
   memberNameById,
   onViewReceipt,
+  onConfirm,
+  onVoid,
 }: {
   rows: Payment[];
   isLoading: boolean;
   memberNameById?: Map<number, string>;
   onViewReceipt?: (payment: Payment) => void;
+  onConfirm?: (payment: Payment) => void;
+  onVoid?: (payment: Payment) => void;
 }) {
-  const colSpan = 8;
+  const showActions = Boolean(onViewReceipt || onConfirm || onVoid);
+  const colSpan = 7 + (memberNameById ? 1 : 0) + (showActions ? 1 : 0);
 
   return (
     <TableContainer component={Paper}>
@@ -44,7 +50,7 @@ export function PaymentsTable({
             <TableCell align="right">Monto original</TableCell>
             <TableCell align="right">Descuento</TableCell>
             <TableCell align="right">Total pagado</TableCell>
-            {onViewReceipt && <TableCell align="right">Comprobante</TableCell>}
+            {showActions && <TableCell align="right">Acciones</TableCell>}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -87,16 +93,44 @@ export function PaymentsTable({
                     {discount > 0 ? `-Q ${formatCurrency(discount)}` : "—"}
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600 }}>Q {formatCurrency(net)}</TableCell>
-                  {onViewReceipt && (
+                  {showActions && (
                     <TableCell align="right">
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<ReceiptIcon />}
-                        onClick={() => onViewReceipt(payment)}
-                      >
-                        Recibo
-                      </Button>
+                      <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap" useFlexGap>
+                        {/* Un pago nace REGISTERED y solo cuenta para el reporte de
+                            ingresos cuando pasa a CONFIRMED. */}
+                        {onConfirm && payment.status === "REGISTERED" && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="success"
+                            startIcon={<CheckCircleIcon />}
+                            onClick={() => onConfirm(payment)}
+                          >
+                            Confirmar
+                          </Button>
+                        )}
+                        {onVoid && payment.status !== "VOIDED" && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            startIcon={<BlockIcon />}
+                            onClick={() => onVoid(payment)}
+                          >
+                            Anular
+                          </Button>
+                        )}
+                        {onViewReceipt && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<ReceiptIcon />}
+                            onClick={() => onViewReceipt(payment)}
+                          >
+                            Recibo
+                          </Button>
+                        )}
+                      </Stack>
                     </TableCell>
                   )}
                 </TableRow>
