@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/auth/useAuth";
 import { Box, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
 import { AllCommunityModule, ModuleRegistry, themeMaterial } from "ag-grid-community";
@@ -14,6 +15,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 export function ClassesListPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
   const [discipline, setDiscipline] = useState<ClassDiscipline | "">("");
   const [groupClassId, setGroupClassId] = useState<number | "">("");
   const [from, setFrom] = useState(isoDate(0));
@@ -34,7 +37,7 @@ export function ClassesListPage() {
       {
         headerName: "Clase",
         flex: 1.5,
-        valueGetter: (params) => params.data?.group_class_name ?? params.data?.name ?? `Clase #${params.data?.group_class_id ?? "-"}`,
+        valueGetter: (params) => params.data?.group_class_name ?? `Clase #${params.data?.group_class_id ?? "-"}`,
       },
       {
         headerName: "Disciplina",
@@ -44,7 +47,7 @@ export function ClassesListPage() {
       {
         headerName: "Fecha",
         width: 120,
-        valueGetter: (params) => params.data?.date ?? "-",
+        valueGetter: (params) => params.data?.session_date ?? "-",
       },
       {
         headerName: "Horario",
@@ -52,7 +55,7 @@ export function ClassesListPage() {
         valueGetter: (params) => {
           const session = params.data;
           if (!session) return "-";
-          return `${session.start_time ?? "--:--"}${session.end_time ? ` - ${session.end_time}` : ""}`;
+          return `${session.start_time ?? "--:--"}${session.duration_minutes ? ` · ${session.duration_minutes} min` : ""}`;
         },
       },
       {
@@ -75,9 +78,6 @@ export function ClassesListPage() {
           const status = params.data?.status;
           if (status === "CANCELLED") {
             return { color: "#d32f2f" };
-          }
-          if (status === "FULL") {
-            return { color: "#ed6c02" };
           }
           return { color: "#2e7d32" };
         },
@@ -107,13 +107,15 @@ export function ClassesListPage() {
         <Typography variant="h4">
           Clases
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => navigate("/classes/new")}
-        >
-          Nueva clase
-        </Button>
+        {isAdmin && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => navigate("/classes/new")}
+          >
+            Nueva clase
+          </Button>
+        )}
       </Box>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 3 }}>

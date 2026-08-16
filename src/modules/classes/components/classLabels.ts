@@ -60,17 +60,20 @@ export const disciplineOptions: Array<{ value: string; label: string }> = discip
 
 export const sessionStatusLabel: Record<string, string> = {
   SCHEDULED: "Programada",
-  CANCELLED: "Cancelada",
+  IN_PROGRESS: "En curso",
   COMPLETED: "Completada",
-  FULL: "Llena",
+  CANCELLED: "Cancelada",
 };
 
 export const enrollmentStatusLabels: Record<string, string> = {
   ENROLLED: "Inscrito",
   CANCELLED: "Cancelado",
+  ATTENDED: "Asistió",
+  ABSENT: "Ausente",
   WAITING: "En espera",
-  NOTIFIED: "Notificado",
-  CONFIRMED: "Confirmado",
+  NOTIFIED: "Cupo liberado",
+  PROMOTED: "Promovido",
+  EXPIRED: "Vencido",
 };
 
 export function isoDate(daysFromToday: number): string {

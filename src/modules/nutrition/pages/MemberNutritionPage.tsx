@@ -11,6 +11,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useMember } from "@/modules/members/hooks";
+import { getErrorMessage } from "@/api/types";
 import { useAuth } from "@/auth/useAuth";
 import { useDailySummary, useNutritionGoal, useSummaryTrend } from "../hooks";
 import { NutritionGoalDialog } from "../components/NutritionGoalDialog";
@@ -63,7 +64,9 @@ export function MemberNutritionPage() {
   if (memberError || !member) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography color="error">No se pudo cargar al socio.</Typography>
+        {/* Un entrenador que abre a un socio que no tiene asignado recibe
+            TRAINER_SCOPE_VIOLATION: vale mas mostrar ese motivo que un error generico. */}
+        <Typography color="error">{getErrorMessage(memberError, "No se pudo cargar al socio.")}</Typography>
       </Box>
     );
   }

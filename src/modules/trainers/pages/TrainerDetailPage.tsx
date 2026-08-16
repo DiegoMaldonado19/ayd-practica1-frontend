@@ -15,6 +15,7 @@ import {
 import { ArrowBack } from "@mui/icons-material";
 import { useTrainer, useUpdateTrainerLoad, useReplaceSpecialties } from "@/modules/trainers/hooks";
 import type { Specialty, Trainer } from "@/modules/trainers/types";
+import { useAuth } from "@/auth/useAuth";
 import { TransferDialog } from "./TransferDialog";
 
 const ALL_SPECIALTIES: Specialty[] = ["WEIGHT_LOSS", "MUSCLE_GAIN", "REHABILITATION", "FUNCTIONAL", "CARDIO"];
@@ -51,6 +52,10 @@ export function TrainerDetailPage() {
 
 function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; trainerId: number }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // Toda escritura bajo /trainers/** es exclusiva de ADMIN; el recepcionista entra a
+  // esta pantalla en modo lectura.
+  const isAdmin = user?.role === "ADMIN";
   const updateLoad = useUpdateTrainerLoad(trainerId);
   const replaceSpecialties = useReplaceSpecialties(trainerId);
 
@@ -97,13 +102,15 @@ function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; traine
           </Typography>
         </Box>
 
-        <Button
-          variant="outlined"
-          color="warning"
-          onClick={() => setTransferOpen(true)}
-        >
-          Transferir cartera
-        </Button>
+        {isAdmin && (
+          <Button
+            variant="outlined"
+            color="warning"
+            onClick={() => setTransferOpen(true)}
+          >
+            Transferir cartera
+          </Button>
+        )}
       </Stack>
 
       <Paper
@@ -125,6 +132,7 @@ function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; traine
               fullWidth
               value={maxLoad}
               onChange={(e) => setMaxLoad(Number(e.target.value))}
+              disabled={!isAdmin}
               helperText="Número máximo de socios que este entrenador puede atender"
             />
           </Grid>
@@ -132,7 +140,7 @@ function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; traine
             <Button
               variant="contained"
               fullWidth
-              disabled={(!loadChanged && !bioChanged) || updateLoad.isPending}
+              disabled={!isAdmin || (!loadChanged && !bioChanged) || updateLoad.isPending}
               onClick={() => updateLoad.mutate({ max_member_load: maxLoad, bio })}
             >
               {updateLoad.isPending ? "Guardando..." : "Guardar"}
@@ -148,6 +156,7 @@ function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; traine
             rows={3}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
+            disabled={!isAdmin}
             placeholder="Ej: Especialista en fuerza y acondicionamiento..."
           />
         </Box>
@@ -170,6 +179,7 @@ function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; traine
           getOptionLabel={(o) => specialtyLabel[o]}
           value={specialties}
           onChange={(_, value) => setSpecialties(value)}
+          disabled={!isAdmin}
           renderInput={(params) => <TextField {...params} label="Especialidades" />}
           renderTags={(value, getTagProps) =>
             value.map((option, index) => (
@@ -180,7 +190,7 @@ function TrainerDetailContent({ trainer, trainerId }: { trainer: Trainer; traine
         <Box sx={{ mt: 2 }}>
           <Button
             variant="contained"
-            disabled={!specialtiesChanged || replaceSpecialties.isPending}
+            disabled={!isAdmin || !specialtiesChanged || replaceSpecialties.isPending}
             onClick={() => replaceSpecialties.mutate({ specialties })}
           >
             {replaceSpecialties.isPending ? "Guardando..." : "Guardar especialidades"}

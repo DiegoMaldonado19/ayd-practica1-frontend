@@ -1,6 +1,7 @@
 import { apiClient } from "@/api/client";
 import type { Page } from "@/api/types";
 import type {
+  CancelSessionDTO,
   ClassEnrollment,
   ClassSession,
   ClassSessionListParams,
@@ -10,6 +11,8 @@ import type {
   GenerateSessionsDTO,
   GroupClass,
   GroupClassListParams,
+  MarkAttendanceDTO,
+  SessionStatusDTO,
   UpdateGroupClassDTO,
   WaitlistEntry,
 } from "./types";
@@ -108,6 +111,75 @@ export async function getClassSessionWaitlist(
   const { data } = await apiClient.get<Page<WaitlistEntry>>(
     `/class-sessions/${classSessionId}/waitlist-entries`,
     { params }
+  );
+  return data;
+}
+
+export async function cancelEnrollment(enrollmentId: number): Promise<void> {
+  await apiClient.delete(`/enrollments/${enrollmentId}`);
+}
+
+export async function cancelWaitlistEntry(waitlistEntryId: number): Promise<void> {
+  await apiClient.delete(`/waitlist-entries/${waitlistEntryId}`);
+}
+
+export async function confirmWaitlistEntry(waitlistEntryId: number): Promise<ClassEnrollment> {
+  const { data } = await apiClient.post<ClassEnrollment>(
+    `/waitlist-entries/${waitlistEntryId}/confirmations`
+  );
+  return data;
+}
+
+/**
+ * Las dos rutas que un socio sí puede leer: el roster y la cola de la sesión son
+ * exclusivos del personal, así que estas son su única fuente para saber si ya está
+ * inscrito y para obtener el waitlist_entry_id que necesita al confirmar.
+ */
+export async function getMemberEnrollments(
+  memberId: number,
+  params: { from?: string; to?: string } = {}
+): Promise<Page<ClassEnrollment>> {
+  const { data } = await apiClient.get<Page<ClassEnrollment>>(
+    `/members/${memberId}/enrollments`,
+    { params }
+  );
+  return data;
+}
+
+export async function getMemberWaitlistEntries(memberId: number): Promise<WaitlistEntry[]> {
+  const { data } = await apiClient.get<WaitlistEntry[]>(`/members/${memberId}/waitlist-entries`);
+  return data;
+}
+
+export async function markAttendance(
+  classSessionId: number,
+  payload: MarkAttendanceDTO
+): Promise<ClassEnrollment[]> {
+  const { data } = await apiClient.put<ClassEnrollment[]>(
+    `/class-sessions/${classSessionId}/attendances`,
+    payload
+  );
+  return data;
+}
+
+export async function updateClassSessionStatus(
+  classSessionId: number,
+  payload: SessionStatusDTO
+): Promise<ClassSession> {
+  const { data } = await apiClient.patch<ClassSession>(
+    `/class-sessions/${classSessionId}/status`,
+    payload
+  );
+  return data;
+}
+
+export async function cancelClassSession(
+  classSessionId: number,
+  payload: CancelSessionDTO
+): Promise<ClassSession> {
+  const { data } = await apiClient.post<ClassSession>(
+    `/class-sessions/${classSessionId}/cancellations`,
+    payload
   );
   return data;
 }
