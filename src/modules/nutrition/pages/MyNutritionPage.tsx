@@ -9,7 +9,6 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useAuth } from "@/auth/useAuth";
-import { useOwnMemberId } from "@/hooks/useOwnMemberId";
 import { useDailySummary, useDeleteMeal, useMeals, useNutritionGoal, useSummaryTrend } from "../hooks";
 import { MealFormDialog } from "../components/MealFormDialog";
 import { NutritionGoalDialog } from "../components/NutritionGoalDialog";
@@ -46,8 +45,7 @@ function daysAgoIso(days: number): string {
 
 export function MyNutritionPage() {
   const { user } = useAuth();
-  const fallback = useOwnMemberId();
-  const memberId = user?.member_id ?? (fallback.status === "resolved" ? fallback.memberId ?? undefined : undefined);
+  const memberId = user?.member_id ?? undefined;
 
   const [mealFormOpen, setMealFormOpen] = useState(false);
   const [editingMeal, setEditingMeal] = useState<Meal | undefined>(undefined);
@@ -68,7 +66,7 @@ export function MyNutritionPage() {
     setMealFormOpen(true);
   };
 
-  if (fallback.status === "loading" && !user?.member_id) {
+  if (!user) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
         <CircularProgress />

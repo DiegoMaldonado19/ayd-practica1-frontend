@@ -1,10 +1,21 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
-import { usePayments } from "@/modules/billing/hooks";
+import { useAuth } from "@/auth/useAuth";
+import { useConfirmPayment, usePayments, useVoidPayment } from "@/modules/billing/hooks";
 import { useMembers } from "@/modules/members/hooks";
-import type { PaymentMethod, PaymentStatus } from "@/modules/billing/types";
+import type { Payment, PaymentMethod, PaymentStatus } from "@/modules/billing/types";
 import {
   paymentConceptLabel,
   paymentMethodLabel,
@@ -18,13 +29,19 @@ const PAGE_SIZE = 12;
 
 export function PaymentsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
   const { data, isLoading, isError } = usePayments({ page: 0, size: 200 });
   const { data: membersData } = useMembers({ page: 0, size: 200 });
+  const confirmPayment = useConfirmPayment();
+  const voidPayment = useVoidPayment();
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<PaymentStatus | "">("");
   const [method, setMethod] = useState<PaymentMethod | "">("");
   const [page, setPage] = useState(1);
+  const [paymentToVoid, setPaymentToVoid] = useState<Payment | null>(null);
+  const [voidReason, setVoidReason] = useState("");
 
   const rows = useMemo(() => data?.content ?? [], [data]);
 
@@ -64,6 +81,19 @@ export function PaymentsPage() {
   const totalPages = Math.max(Math.ceil(filtered.length / PAGE_SIZE), 1);
   const safePage = Math.min(page, totalPages);
   const pageRows = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const closeVoidDialog = () => {
+    setPaymentToVoid(null);
+    setVoidReason("");
+  };
+
+  const submitVoid = () => {
+    if (!paymentToVoid || !voidReason.trim()) return;
+    voidPayment.mutate(
+      { paymentId: paymentToVoid.payment_id, payload: { reason: voidReason.trim() } },
+      { onSuccess: closeVoidDialog },
+    );
+  };
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto" }}>
@@ -106,7 +136,14 @@ export function PaymentsPage() {
         </Typography>
       )}
 
-      <PaymentsTable rows={pageRows} isLoading={isLoading} memberNameById={memberNameById} />
+      <PaymentsTable
+        rows={pageRows}
+        isLoading={isLoading}
+        memberNameById={memberNameById}
+        onConfirm={(payment) => confirmPayment.mutate(payment.payment_id)}
+        // POST /payments/{id}/voids es exclusivo de ADMIN.
+        onVoid={isAdmin ? setPaymentToVoid : undefined}
+      />
 
       <ListPagination
         countText={`${filtered.length} pago(s) · página ${safePage} de ${totalPages}`}
@@ -114,6 +151,37 @@ export function PaymentsPage() {
         totalPages={totalPages}
         onChange={setPage}
       />
+
+      <Dialog open={Boolean(paymentToVoid)} onClose={closeVoidDialog} fullWidth maxWidth="sm">
+        <DialogTitle>Anular pago #{paymentToVoid?.payment_id}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            La anulación queda registrada con su motivo y el pago deja de contar para el reporte de ingresos.
+          </Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            multiline
+            minRows={2}
+            label="Motivo de la anulación"
+            value={voidReason}
+            onChange={(event) => setVoidReason(event.target.value)}
+            inputProps={{ maxLength: 200 }}
+            helperText={`${voidReason.length}/200 · obligatorio`}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeVoidDialog}>Cancelar</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={submitVoid}
+            disabled={!voidReason.trim() || voidPayment.isPending}
+          >
+            {voidPayment.isPending ? "Anulando..." : "Anular pago"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

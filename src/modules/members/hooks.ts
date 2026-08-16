@@ -17,10 +17,13 @@ import type {
 
 const membersKey = (params?: MemberListParams) => ["members", params] as const;
 
-export function useMembers(params: MemberListParams) {
+// GET /members es 403 para un socio: quien lo monte en una pantalla compartida con
+// ese rol tiene que poder apagarlo en lugar de dejar correr el error.
+export function useMembers(params: MemberListParams, enabled = true) {
   return useQuery({
     queryKey: membersKey(params),
     queryFn: () => getMembers(params),
+    enabled,
   });
 }
 

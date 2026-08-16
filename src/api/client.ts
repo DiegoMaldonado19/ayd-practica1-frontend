@@ -15,7 +15,8 @@ export function clearAccessToken(): void {
 }
 
 export const apiClient = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
+  // Sin el fallback, un clon sin .env pide contra la URL literal "undefined/api/v1".
+  baseURL: `${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080"}/api/v1`,
 });
 
 apiClient.interceptors.request.use((config) => {
