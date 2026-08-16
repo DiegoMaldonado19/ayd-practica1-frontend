@@ -13,49 +13,8 @@ import {
 import { ArrowBack as ArrowBackIcon, Edit as EditIcon } from "@mui/icons-material";
 import { useClassSessions, useGenerateGroupClassSessions, useGroupClass } from "@/modules/classes/hooks";
 import { AppDatePicker } from "@/components/AppDatePicker";
-
-const weekdayLabel: Record<string, string> = {
-  MONDAY: "Lunes",
-  TUESDAY: "Martes",
-  WEDNESDAY: "Miércoles",
-  THURSDAY: "Jueves",
-  FRIDAY: "Viernes",
-  SATURDAY: "Sábado",
-  SUNDAY: "Domingo",
-};
-
-const disciplineLabel: Record<string, string> = {
-  YOGA: "Yoga",
-  CROSSFIT: "CrossFit",
-  PILATES: "Pilates",
-  HIIT: "HIIT",
-  CARDIO: "Cardio",
-  STRENGTH: "Fuerza",
-  FUNCTIONAL: "Funcional",
-  BOXING: "Boxeo",
-  SPINNING: "Spinning",
-  MEDITATION: "Meditación",
-};
-
-function Field({ label, value }: { label: string; value?: string | number | null }) {
-  return (
-    <Box>
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
-        {label}
-      </Typography>
-      <Typography variant="body1" sx={{ fontWeight: 500 }}>
-        {value ?? "—"}
-      </Typography>
-    </Box>
-  );
-}
-
-function isoDate(daysFromToday: number): string {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + daysFromToday);
-  return date.toISOString().slice(0, 10);
-}
+import { ClassInfoField } from "@/modules/classes/components/ClassInfoField";
+import { disciplineLabel, isoDate, weekdayLabel } from "@/modules/classes/components/classLabels";
 
 export function ClassDetailPage() {
   const navigate = useNavigate();
@@ -139,11 +98,7 @@ export function ClassDetailPage() {
           </Typography>
         </Box>
 
-        <Button
-          variant="outlined"
-          startIcon={<EditIcon />}
-          onClick={() => navigate(`/classes/${classId}/edit`)}
-        >
+        <Button variant="outlined" startIcon={<EditIcon />} onClick={() => navigate(`/classes/${classId}/edit`)}>
           Editar
         </Button>
       </Stack>
@@ -151,31 +106,31 @@ export function ClassDetailPage() {
       <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, borderRadius: 3 }}>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={4}>
-            <Field label="Código" value={groupClass.code} />
+            <ClassInfoField label="Código" value={groupClass.code} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Disciplina" value={disciplineLabel[groupClass.discipline] ?? groupClass.discipline} />
+            <ClassInfoField label="Disciplina" value={disciplineLabel[groupClass.discipline] ?? groupClass.discipline} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Nivel" value={groupClass.difficulty_level ?? "—"} />
+            <ClassInfoField label="Nivel" value={groupClass.difficulty_level ?? "—"} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Día" value={groupClass.weekday ? weekdayLabel[groupClass.weekday] : "—"} />
+            <ClassInfoField label="Día" value={groupClass.weekday ? weekdayLabel[groupClass.weekday] : "—"} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Hora" value={groupClass.start_time ?? "—"} />
+            <ClassInfoField label="Hora" value={groupClass.start_time ?? "—"} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Duración" value={groupClass.duration_minutes ? `${groupClass.duration_minutes} min` : "—"} />
+            <ClassInfoField label="Duración" value={groupClass.duration_minutes ? `${groupClass.duration_minutes} min` : "—"} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Cupo máximo" value={groupClass.max_capacity ?? "—"} />
+            <ClassInfoField label="Cupo máximo" value={groupClass.max_capacity ?? "—"} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Entrenador" value={groupClass.trainer_id ?? "—"} />
+            <ClassInfoField label="Entrenador" value={groupClass.trainer_id ?? "—"} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Estado" value={groupClass.active ? "Activa" : "Inactiva"} />
+            <ClassInfoField label="Estado" value={groupClass.active ? "Activa" : "Inactiva"} />
           </Grid>
         </Grid>
 
