@@ -8,35 +8,9 @@ import { Add as AddIcon } from "@mui/icons-material";
 import { useClassSessions, useGroupClasses } from "@/modules/classes/hooks";
 import type { ClassDiscipline, ClassSession } from "@/modules/classes/types";
 import { AppDatePicker } from "@/components/AppDatePicker";
+import { disciplineOptions, isoDate, sessionStatusLabel } from "@/modules/classes/components/classLabels";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
-
-const disciplineOptions: Array<{ value: string; label: string }> = [
-  { value: "YOGA", label: "Yoga" },
-  { value: "CROSSFIT", label: "CrossFit" },
-  { value: "PILATES", label: "Pilates" },
-  { value: "HIIT", label: "HIIT" },
-  { value: "CARDIO", label: "Cardio" },
-  { value: "STRENGTH", label: "Fuerza" },
-  { value: "FUNCTIONAL", label: "Funcional" },
-  { value: "BOXING", label: "Boxeo" },
-  { value: "SPINNING", label: "Spinning" },
-  { value: "MEDITATION", label: "Meditación" },
-];
-
-const statusLabel: Record<string, string> = {
-  SCHEDULED: "Programada",
-  CANCELLED: "Cancelada",
-  COMPLETED: "Completada",
-  FULL: "Llena",
-};
-
-function isoDate(daysFromToday: number): string {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + daysFromToday);
-  return date.toISOString().slice(0, 10);
-}
 
 export function ClassesListPage() {
   const navigate = useNavigate();
@@ -96,7 +70,7 @@ export function ClassesListPage() {
       {
         headerName: "Estado",
         width: 120,
-        valueGetter: (params) => statusLabel[params.data?.status ?? ""] ?? params.data?.status ?? "-",
+        valueGetter: (params) => sessionStatusLabel[params.data?.status ?? ""] ?? params.data?.status ?? "-",
         cellStyle: (params) => {
           const status = params.data?.status;
           if (status === "CANCELLED") {

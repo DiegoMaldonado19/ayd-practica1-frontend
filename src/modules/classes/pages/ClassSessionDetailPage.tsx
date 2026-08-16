@@ -15,14 +15,8 @@ import {
 import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import { useClassSession, useClassSessionEnrollments, useClassSessionWaitlist, useEnrollMemberInClassSession, useJoinWaitlist } from "@/modules/classes/hooks";
 import { useMembers } from "@/modules/members/hooks";
-
-const enrollmentStatusLabels: Record<string, string> = {
-  ENROLLED: "Inscrito",
-  CANCELLED: "Cancelado",
-  WAITING: "En espera",
-  NOTIFIED: "Notificado",
-  CONFIRMED: "Confirmado",
-};
+import { ClassInfoField } from "@/modules/classes/components/ClassInfoField";
+import { enrollmentStatusLabels } from "@/modules/classes/components/classLabels";
 
 function getMemberDisplayName(memberId: number, memberMap: Map<number, { person: { full_name: string; document_number: string } }>) {
   const member = memberMap.get(memberId);
@@ -114,24 +108,19 @@ export function ClassSessionDetailPage() {
       <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
-            <Typography variant="caption" color="text.secondary">Clase</Typography>
-            <Typography variant="body1">{session.group_class_name ?? session.name ?? `Clase #${session.group_class_id}`}</Typography>
+            <ClassInfoField label="Clase" value={session.group_class_name ?? session.name ?? `Clase #${session.group_class_id}`} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Typography variant="caption" color="text.secondary">Disciplina</Typography>
-            <Typography variant="body1">{session.discipline ?? "-"}</Typography>
+            <ClassInfoField label="Disciplina" value={session.discipline ?? "-"} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Typography variant="caption" color="text.secondary">Horario</Typography>
-            <Typography variant="body1">{session.start_time ?? "-"}</Typography>
+            <ClassInfoField label="Horario" value={session.start_time ?? "-"} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Typography variant="caption" color="text.secondary">Cupo</Typography>
-            <Typography variant="body1">{session.seats_available ?? 0} disponibles</Typography>
+            <ClassInfoField label="Cupo" value={`${session.seats_available ?? 0} disponibles`} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Typography variant="caption" color="text.secondary">Estado</Typography>
-            <Typography variant="body1">{session.status ?? "-"}</Typography>
+            <ClassInfoField label="Estado" value={session.status ?? "-"} />
           </Grid>
         </Grid>
       </Paper>

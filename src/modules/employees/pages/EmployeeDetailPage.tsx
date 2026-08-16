@@ -1,10 +1,10 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Box,
   Typography,
   Paper,
   Grid,
-  Chip,
   Button,
   CircularProgress,
   Stack,
@@ -12,21 +12,9 @@ import {
   MenuItem,
 } from "@mui/material";
 import { ArrowBack, Edit, MoreVert } from "@mui/icons-material";
-import { useState } from "react";
 import { useEmployee, useUpdateEmployeeStatus } from "@/modules/employees/hooks";
 import type { EmployeeStatus } from "@/modules/employees/types";
-
-const statusLabel: Record<EmployeeStatus, string> = {
-  ACTIVE: "Activo",
-  SUSPENDED: "Suspendido",
-  TERMINATED: "Terminado",
-};
-
-const statusColor: Record<EmployeeStatus, "success" | "warning" | "error"> = {
-  ACTIVE: "success",
-  SUSPENDED: "warning",
-  TERMINATED: "error",
-};
+import { EmployeeStatusChip } from "@/modules/employees/components/EmployeeStatusChip";
 
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
   return (
@@ -70,19 +58,10 @@ export function EmployeeDetailPage() {
   };
 
   const allStatuses: EmployeeStatus[] = ["ACTIVE", "SUSPENDED", "TERMINATED"];
-  const availableStatuses = allStatuses.filter(
-    (status) => status !== employee.status
-  );
+  const availableStatuses = allStatuses.filter((status) => status !== employee.status);
 
   return (
-    <Box
-      sx={{
-        px: { xs: 2, sm: 3, md: 4 },
-        py: { xs: 3, md: 4 },
-        maxWidth: 980,
-        mx: "auto",
-      }}
-    >
+    <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: { xs: 3, md: 4 }, maxWidth: 980, mx: "auto" }}>
       <Stack
         direction={{ xs: "column", md: "row" }}
         justifyContent="space-between"
@@ -91,35 +70,26 @@ export function EmployeeDetailPage() {
         sx={{ mb: 3 }}
       >
         <Box>
-          <Button
-            startIcon={<ArrowBack />}
-            onClick={() => navigate("/employees")}
-            sx={{ mb: 1 }}
-          >
+          <Button startIcon={<ArrowBack />} onClick={() => navigate("/employees")} sx={{ mb: 1 }}>
             Regresar al listado
           </Button>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-            {employee.person.full_name}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems={{ xs: "flex-start", sm: "center" }}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              {employee.person.full_name}
+            </Typography>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             Revisa la información del empleado, actualiza sus datos o cambia su estado.
           </Typography>
         </Box>
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
           {employee.trainer_id && (
-            <Button
-              variant="outlined"
-              onClick={() => navigate(`/trainers/${employee.trainer_id}`)}
-            >
+            <Button variant="outlined" onClick={() => navigate(`/trainers/${employee.trainer_id}`)}>
               Ver perfil de entrenador
             </Button>
           )}
-          <Button
-            variant="outlined"
-            startIcon={<Edit />}
-            onClick={() => navigate(`/employees/${employeeId}/edit`)}
-          >
+          <Button variant="outlined" startIcon={<Edit />} onClick={() => navigate(`/employees/${employeeId}/edit`)}>
             Editar
           </Button>
 
@@ -133,17 +103,9 @@ export function EmployeeDetailPage() {
             Cambiar estado
           </Button>
 
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={() => setAnchorEl(null)}
-          >
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
             {availableStatuses.map((status) => (
-              <MenuItem
-                key={status}
-                onClick={() => handleStatusChange(status)}
-                disabled={updateStatus.isPending}
-              >
+              <MenuItem key={status} onClick={() => handleStatusChange(status)} disabled={updateStatus.isPending}>
                 {status === "ACTIVE" && "Reincorporar"}
                 {status === "SUSPENDED" && "Suspender"}
                 {status === "TERMINATED" && "Dar de baja"}
@@ -153,23 +115,12 @@ export function EmployeeDetailPage() {
         </Stack>
       </Stack>
 
-      <Paper
-        variant="outlined"
-        sx={{
-          p: { xs: 2.5, sm: 3, md: 4 },
-          borderRadius: 3,
-          overflow: "hidden",
-        }}
-      >
+      <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, borderRadius: 3, overflow: "hidden" }}>
         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Datos del empleado
           </Typography>
-          <Chip
-            label={statusLabel[employee.status]}
-            color={statusColor[employee.status]}
-            size="small"
-          />
+          <EmployeeStatusChip status={employee.status} size="small" />
         </Stack>
 
         <Grid container spacing={3}>
@@ -183,10 +134,7 @@ export function EmployeeDetailPage() {
             <Field label="Fecha de contratación" value={employee.hired_on} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field
-              label="Documento"
-              value={`${employee.person.document_type} ${employee.person.document_number}`}
-            />
+            <Field label="Documento" value={`${employee.person.document_type} ${employee.person.document_number}`} />
           </Grid>
           <Grid item xs={12} sm={4}>
             <Field label="Correo" value={employee.person.email} />

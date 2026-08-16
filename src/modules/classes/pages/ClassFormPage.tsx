@@ -1,113 +1,31 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Grid,
-  MenuItem,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Grid, MenuItem, Paper, Typography } from "@mui/material";
 import { ArrowBack as ArrowBackIcon, Save as SaveIcon } from "@mui/icons-material";
 import { useTrainers } from "@/modules/trainers/hooks";
 import { useCreateGroupClass, useGroupClass, useUpdateGroupClass } from "@/modules/classes/hooks";
-import type { ClassDiscipline, DifficultyLevel, Weekday } from "@/modules/classes/types";
-
-const disciplines: ClassDiscipline[] = [
-  "YOGA",
-  "CROSSFIT",
-  "PILATES",
-  "HIIT",
-  "CARDIO",
-  "STRENGTH",
-  "FUNCTIONAL",
-  "BOXING",
-  "SPINNING",
-  "MEDITATION",
-];
-
-const weekdays: Weekday[] = [
-  "MONDAY",
-  "TUESDAY",
-  "WEDNESDAY",
-  "THURSDAY",
-  "FRIDAY",
-  "SATURDAY",
-  "SUNDAY",
-];
-
-const difficultyOptions: DifficultyLevel[] = ["BEGINNER", "INTERMEDIATE", "ADVANCED"];
-
-const schema = yup.object({
-  code: yup.string().required("El código es requerido").max(30, "Máximo 30 caracteres"),
-  name: yup.string().required("El nombre es requerido").max(100, "Máximo 100 caracteres"),
-  discipline: yup.mixed<ClassDiscipline>().oneOf(disciplines).required("Selecciona una disciplina"),
-  trainer_id: yup.number().typeError("Selecciona un entrenador").required("Selecciona un entrenador"),
-  weekday: yup.mixed<Weekday>().oneOf(weekdays).required("Selecciona un día"),
-  start_time: yup
-    .string()
-    .required("La hora es requerida")
-    .matches(/^([01]\d|2[0-3]):[0-5]\d$/, "Usa formato HH:mm"),
-  duration_minutes: yup
-    .number()
-    .typeError("Debe ser un número")
-    .integer("Debe ser entero")
-    .min(30, "Mínimo 30 minutos")
-    .max(180, "Máximo 180 minutos")
-    .required("La duración es requerida"),
-  max_capacity: yup
-    .number()
-    .typeError("Debe ser un número")
-    .integer("Debe ser entero")
-    .min(1, "Mínimo 1 cupo")
-    .max(50, "Máximo 50 cupos")
-    .required("El cupo es requerido"),
-  difficulty_level: yup.mixed<DifficultyLevel>().oneOf(difficultyOptions).optional(),
-});
-
-type FormValues = yup.InferType<typeof schema>;
-
-const weekdayLabel: Record<Weekday, string> = {
-  MONDAY: "Lunes",
-  TUESDAY: "Martes",
-  WEDNESDAY: "Miércoles",
-  THURSDAY: "Jueves",
-  FRIDAY: "Viernes",
-  SATURDAY: "Sábado",
-  SUNDAY: "Domingo",
-};
-
-const disciplineLabel: Record<ClassDiscipline, string> = {
-  YOGA: "Yoga",
-  CROSSFIT: "CrossFit",
-  PILATES: "Pilates",
-  HIIT: "HIIT",
-  CARDIO: "Cardio",
-  STRENGTH: "Fuerza",
-  FUNCTIONAL: "Funcional",
-  BOXING: "Boxeo",
-  SPINNING: "Spinning",
-  MEDITATION: "Meditación",
-};
-
-const difficultyLabel: Record<DifficultyLevel, string> = {
-  BEGINNER: "Principiante",
-  INTERMEDIATE: "Intermedio",
-  ADVANCED: "Avanzado",
-};
+import type { CreateGroupClassDTO } from "@/modules/classes/types";
+import {
+  classFormSchema,
+  type ClassFormValues,
+} from "@/modules/classes/classFormSchema";
+import {
+  disciplines,
+  disciplineLabel,
+  difficultyLabel,
+  difficultyOptions,
+  weekdayLabel,
+  weekdays,
+} from "@/modules/classes/components/classLabels";
+import { ClassFormField } from "@/modules/classes/components/ClassFormField";
 
 export function ClassFormPage() {
   const navigate = useNavigate();
   const { classId } = useParams();
   const isEdit = Boolean(classId);
-  const { data: groupClass, isLoading: isLoadingClass } = useGroupClass(
-    isEdit ? Number(classId) : undefined
-  );
+  const { data: groupClass, isLoading: isLoadingClass } = useGroupClass(isEdit ? Number(classId) : undefined);
   const { data: trainersData } = useTrainers({ page: 0, size: 200 });
   const createMutation = useCreateGroupClass();
   const updateMutation = useUpdateGroupClass(Number(classId));
@@ -117,8 +35,8 @@ export function ClassFormPage() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: yupResolver(schema),
+  } = useForm<ClassFormValues>({
+    resolver: yupResolver(classFormSchema),
     defaultValues: {
       code: "",
       name: "",
@@ -147,8 +65,8 @@ export function ClassFormPage() {
     });
   }, [groupClass, reset]);
 
-  const onSubmit = (values: FormValues) => {
-    const payload = {
+  const onSubmit = (values: ClassFormValues) => {
+    const payload: CreateGroupClassDTO = {
       code: values.code,
       name: values.name,
       discipline: values.discipline,
@@ -196,185 +114,87 @@ export function ClassFormPage() {
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={2.5}>
             <Grid item xs={12} sm={4}>
-              <Controller
-                name="code"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Código"
-                    fullWidth
-                    error={!!errors.code}
-                    helperText={errors.code?.message}
-                  />
-                )}
-              />
+              <ClassFormField control={control} errors={errors} name="code" label="Código" />
             </Grid>
 
             <Grid item xs={12} sm={8}>
-              <Controller
-                name="name"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Nombre"
-                    fullWidth
-                    error={!!errors.name}
-                    helperText={errors.name?.message}
-                  />
-                )}
-              />
+              <ClassFormField control={control} errors={errors} name="name" label="Nombre" />
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <Controller
-                name="discipline"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    select
-                    label="Disciplina"
-                    fullWidth
-                    error={!!errors.discipline}
-                    helperText={errors.discipline?.message}
-                  >
-                    {disciplines.map((value) => (
-                      <MenuItem key={value} value={value}>
-                        {disciplineLabel[value]}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
+              <ClassFormField control={control} errors={errors} name="discipline" label="Disciplina" select>
+                {disciplines.map((value) => (
+                  <MenuItem key={value} value={value}>
+                    {disciplineLabel[value]}
+                  </MenuItem>
+                ))}
+              </ClassFormField>
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <Controller
-                name="difficulty_level"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    select
-                    label="Nivel"
-                    fullWidth
-                    error={!!errors.difficulty_level}
-                    helperText={errors.difficulty_level?.message}
-                  >
-                    {difficultyOptions.map((value) => (
-                      <MenuItem key={value} value={value}>
-                        {difficultyLabel[value]}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
+              <ClassFormField control={control} errors={errors} name="difficulty_level" label="Nivel" select>
+                {difficultyOptions.map((value) => (
+                  <MenuItem key={value} value={value}>
+                    {difficultyLabel[value]}
+                  </MenuItem>
+                ))}
+              </ClassFormField>
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <Controller
+              <ClassFormField
+                control={control}
+                errors={errors}
                 name="trainer_id"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    select
-                    label="Entrenador"
-                    fullWidth
-                    value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-                    error={!!errors.trainer_id}
-                    helperText={errors.trainer_id?.message}
-                  >
-                    <MenuItem value="">Seleccionar</MenuItem>
-                    {(trainersData?.content ?? []).map((trainer) => (
-                      <MenuItem key={trainer.trainer_id} value={trainer.trainer_id}>
-                        {trainer.person.full_name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
+                label="Entrenador"
+                select
+                value={(v) => v ?? ""}
+                onChange={(v) => (v === "" ? undefined : Number(v))}
+              >
+                <MenuItem value="">Seleccionar</MenuItem>
+                {(trainersData?.content ?? []).map((trainer) => (
+                  <MenuItem key={trainer.trainer_id} value={trainer.trainer_id}>
+                    {trainer.person.full_name}
+                  </MenuItem>
+                ))}
+              </ClassFormField>
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <Controller
-                name="weekday"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    select
-                    label="Día de la semana"
-                    fullWidth
-                    error={!!errors.weekday}
-                    helperText={errors.weekday?.message}
-                  >
-                    {weekdays.map((value) => (
-                      <MenuItem key={value} value={value}>
-                        {weekdayLabel[value]}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
+              <ClassFormField control={control} errors={errors} name="weekday" label="Día de la semana" select>
+                {weekdays.map((value) => (
+                  <MenuItem key={value} value={value}>
+                    {weekdayLabel[value]}
+                  </MenuItem>
+                ))}
+              </ClassFormField>
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <Controller
-                name="start_time"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="time"
-                    label="Hora de inicio"
-                    fullWidth
-                    error={!!errors.start_time}
-                    helperText={errors.start_time?.message}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                )}
-              />
+              <ClassFormField control={control} errors={errors} name="start_time" label="Hora de inicio" type="time" />
             </Grid>
 
             <Grid item xs={12} sm={2}>
-              <Controller
+              <ClassFormField
+                control={control}
+                errors={errors}
                 name="duration_minutes"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="number"
-                    label="Duración"
-                    fullWidth
-                    value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-                    error={!!errors.duration_minutes}
-                    helperText={errors.duration_minutes?.message}
-                  />
-                )}
+                label="Duración"
+                type="number"
+                value={(v) => v ?? ""}
+                onChange={(v) => (v === "" ? undefined : Number(v))}
               />
             </Grid>
 
             <Grid item xs={12} sm={2}>
-              <Controller
-                name="max_capacity"
+              <ClassFormField
                 control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="number"
-                    label="Cupo"
-                    fullWidth
-                    value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
-                    error={!!errors.max_capacity}
-                    helperText={errors.max_capacity?.message}
-                  />
-                )}
+                errors={errors}
+                name="max_capacity"
+                label="Cupo"
+                type="number"
+                value={(v) => v ?? ""}
+                onChange={(v) => (v === "" ? undefined : Number(v))}
               />
             </Grid>
           </Grid>

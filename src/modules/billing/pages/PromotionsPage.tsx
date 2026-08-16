@@ -1,25 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Button,
-  Chip,
-  InputAdornment,
-  MenuItem,
-  Pagination,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Chip, InputAdornment, MenuItem, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import { Add as AddIcon, Search as SearchIcon } from "@mui/icons-material";
 import { usePromotions } from "@/modules/billing/hooks";
+import { ListPagination } from "@/modules/billing/components/ListPagination";
 
 const PAGE_SIZE = 12;
 
@@ -154,21 +138,12 @@ export function PromotionsPage() {
         </Table>
       </TableContainer>
 
-      <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" spacing={2} sx={{ mt: 2 }}>
-        <Typography variant="body2" color="text.secondary">
-          {filtered.length} promoción(es) · página {safePage} de {totalPages}
-        </Typography>
-        <Pagination
-          count={totalPages}
-          page={safePage}
-          onChange={(_, value) => setPage(value)}
-          color="primary"
-          shape="rounded"
-          size="small"
-          showFirstButton
-          showLastButton
-        />
-      </Stack>
+      <ListPagination
+        countText={`${filtered.length} promoción(es) · página ${safePage} de ${totalPages}`}
+        page={safePage}
+        totalPages={totalPages}
+        onChange={setPage}
+      />
     </Box>
   );
 }
