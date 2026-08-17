@@ -80,7 +80,7 @@ export const employeeFormSchema = yup.object({
   phone: yup
     .string()
     .transform((val) => val?.replace(/\D/g, "") || "")
-    .matches(/^\d{8}$/, "El teléfono debe tener exactamente 8 dígitos")
+    .test("phone-format", "El teléfono debe tener exactamente 8 dígitos", (val) => !val || /^\d{8}$/.test(val))
     .optional(),
   address: yup.string().optional(),
   position: yup.mixed<Position>().oneOf(["ADMIN", "RECEPTIONIST", "TRAINER"]).required("Selecciona el puesto"),
@@ -107,7 +107,7 @@ export const employeeFormSchema = yup.object({
   bio: yup.string().max(500, "La biografía no puede superar 500 caracteres").optional(),
   username: yup
     .string()
-    .matches(/^[a-zA-Z0-9._-]{3,30}$/, "Entre 3 y 30 caracteres: letras, números, puntos y guiones"),
+    .test("username-format", "Entre 3 y 30 caracteres: letras, números, puntos y guiones", (val) => !val || /^[a-zA-Z0-9._-]{3,30}$/.test(val)),
   password: yup.string().test("password-for-access", "Contraseña inválida", function (value) {
     const username = this.parent.username as string | undefined;
     if (!username) return true;
