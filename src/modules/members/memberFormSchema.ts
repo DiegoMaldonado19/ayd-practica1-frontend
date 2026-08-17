@@ -69,19 +69,19 @@ export const memberFormSchema = yup.object({
   phone: yup
     .string()
     .transform((val) => val?.replace(/\D/g, "") || "")
-    .matches(/^\d{8}$/, "El teléfono debe tener exactamente 8 dígitos")
+    .test("phone-format", "El teléfono debe tener exactamente 8 dígitos", (val) => !val || /^\d{8}$/.test(val))
     .optional(),
   address: yup.string().optional(),
   emergency_contact_name: yup.string().optional(),
   emergency_contact_phone: yup
     .string()
     .transform((val) => val?.replace(/\D/g, "") || "")
-    .matches(/^\d{8}$/, "El teléfono debe tener exactamente 8 dígitos")
+    .test("phone-format", "El teléfono debe tener exactamente 8 dígitos", (val) => !val || /^\d{8}$/.test(val))
     .optional(),
   notes: yup.string().optional(),
   username: yup
     .string()
-    .matches(/^[a-zA-Z0-9._-]{3,30}$/, "Entre 3 y 30 caracteres: letras, números, puntos y guiones"),
+    .test("username-format", "Entre 3 y 30 caracteres: letras, números, puntos y guiones", (val) => !val || /^[a-zA-Z0-9._-]{3,30}$/.test(val)),
   password: yup.string().test("password-for-access", "Contraseña inválida", function (value) {
     const username = this.parent.username as string | undefined;
     if (!username) return true;
