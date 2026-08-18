@@ -7,7 +7,7 @@ import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { PeopleAlt, Event, HowToReg, PersonAdd, CreditCard } from "@mui/icons-material";
+import { PeopleAlt, Event, HowToReg, Payment, CreditCard } from "@mui/icons-material";
 import { SimpleBarChart } from "@/components/SimpleBarChart";
 import { useMemberships } from "@/modules/membership/hooks";
 import { useGuestPasses, useVisits } from "../hooks";
@@ -121,8 +121,8 @@ export function ReceptionistPanel() {
           </Button>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Button fullWidth variant="outlined" startIcon={<PersonAdd />} component={RouterLink} to="/members/new">
-            Nuevo socio
+          <Button fullWidth variant="outlined" startIcon={<Payment />} component={RouterLink} to="/payments/new">
+            Registrar pago
           </Button>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>

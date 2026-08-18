@@ -78,14 +78,8 @@ export const router = createBrowserRouter([
           // end miguel
           {
             element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
-            children: [{ path: "/members/:memberId/edit", element: <MemberFormPage /> }],
-          },
-
-          {
-            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
             children: [
               { path: "/members", element: <MembersListPage /> },
-              { path: "/members/new", element: <MemberFormPage /> },
               { path: "/members/:memberId", element: <MemberDetailPage /> },
 
               {
@@ -101,6 +95,11 @@ export const router = createBrowserRouter([
           {
             element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
             children: [
+              // El alta y la edición del expediente son del administrador (Enunciado);
+              // el recepcionista solo consulta el listado y el detalle.
+              { path: "/members/new", element: <MemberFormPage /> },
+              { path: "/members/:memberId/edit", element: <MemberFormPage /> },
+
               { path: "/employees", element: <EmployeesListPage /> },
               { path: "/employees/new", element: <EmployeeFormPage /> },
               { path: "/employees/:employeeId", element: <EmployeeDetailPage /> },
