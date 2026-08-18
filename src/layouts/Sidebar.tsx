@@ -56,7 +56,7 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", path: "/dashboard", icon: <DashboardIcon />, module: "dashboard", roles: ["ADMIN"] },
+  { label: "Dashboard", path: "/dashboard", icon: <DashboardIcon />, module: "dashboard", roles: ["ADMIN", "RECEPTIONIST", "TRAINER"] },
   { label: "Inicio", path: "/dashboard", icon: <HomeIcon />, module: "dashboard", roles: ["MEMBER"] },
   { label: "Socios", path: "/members", icon: <PeopleIcon />, module: "members" },
   { label: "Personal", path: "/employees", icon: <BadgeIcon />, module: "employees" },

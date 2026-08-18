@@ -4,11 +4,14 @@ import { Box, Button, Chip, InputAdornment, MenuItem, Paper, Stack, Table, Table
 import { Add as AddIcon, Search as SearchIcon } from "@mui/icons-material";
 import { usePromotions } from "@/modules/billing/hooks";
 import { ListPagination } from "@/modules/billing/components/ListPagination";
+import { useAuth } from "@/auth/useAuth";
 
 const PAGE_SIZE = 12;
 
 export function PromotionsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
   const { data, isLoading, isError } = usePromotions({ page: 0, size: 200 });
 
   const [search, setSearch] = useState("");
@@ -42,9 +45,11 @@ export function PromotionsPage() {
             Promociones activas e inactivas del módulo billing.
           </Typography>
         </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/promotions/new")}>
-          Nueva promoción
-        </Button>
+        {isAdmin && (
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/promotions/new")}>
+            Nueva promoción
+          </Button>
+        )}
       </Stack>
 
       <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>

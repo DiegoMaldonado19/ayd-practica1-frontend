@@ -14,11 +14,14 @@ import { ArrowBack as ArrowBackIcon, Edit as EditIcon } from "@mui/icons-materia
 import { useClassSessions, useGenerateGroupClassSessions, useGroupClass } from "@/modules/classes/hooks";
 import { AppDatePicker } from "@/components/AppDatePicker";
 import { ClassInfoField } from "@/modules/classes/components/ClassInfoField";
-import { disciplineLabel, isoDate, weekdayLabel } from "@/modules/classes/components/classLabels";
+import { disciplineLabel, isoDate, sessionStatusLabel, weekdayLabel } from "@/modules/classes/components/classLabels";
+import { useAuth } from "@/auth/useAuth";
 
 export function ClassDetailPage() {
   const navigate = useNavigate();
   const { classId } = useParams();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
   const { data: groupClass, isLoading, isError } = useGroupClass(Number(classId));
   const [sessionFrom, setSessionFrom] = useState(() => isoDate(0));
   const [sessionTo, setSessionTo] = useState(() => isoDate(30));
@@ -98,9 +101,11 @@ export function ClassDetailPage() {
           </Typography>
         </Box>
 
-        <Button variant="outlined" startIcon={<EditIcon />} onClick={() => navigate(`/classes/${classId}/edit`)}>
-          Editar
-        </Button>
+        {isAdmin && (
+          <Button variant="outlined" startIcon={<EditIcon />} onClick={() => navigate(`/classes/${classId}/edit`)}>
+            Editar
+          </Button>
+        )}
       </Stack>
 
       <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3, md: 4 }, borderRadius: 3 }}>
@@ -140,40 +145,44 @@ export function ClassDetailPage() {
           Acciones rápidas
         </Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 2 }}>
-          <Button variant="contained" onClick={() => navigate(`/classes/${classId}/edit`)}>
-            Modificar clase
-          </Button>
+          {isAdmin && (
+            <Button variant="contained" onClick={() => navigate(`/classes/${classId}/edit`)}>
+              Modificar clase
+            </Button>
+          )}
           <Button variant="outlined" onClick={() => navigate("/classes")}>
             Volver al listado
           </Button>
         </Stack>
 
-        <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems="center" sx={{ mb: 2 }}>
-          <AppDatePicker
-            label="Desde"
-            value={sessionFrom}
-            onChange={setSessionFrom}
-            size="small"
-            error={!!dateError}
-          />
-          <AppDatePicker
-            label="Hasta"
-            value={sessionTo}
-            onChange={setSessionTo}
-            size="small"
-            error={!!dateError}
-          />
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleGenerateSessions}
-            disabled={generateSessionsMutation.isPending || !!dateError || !sessionFrom || !sessionTo}
-          >
-            {generateSessionsMutation.isPending ? "Generando..." : "Generar sesiones"}
-          </Button>
-        </Stack>
+        {isAdmin && (
+          <Stack direction={{ xs: "column", md: "row" }} spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <AppDatePicker
+              label="Desde"
+              value={sessionFrom}
+              onChange={setSessionFrom}
+              size="small"
+              error={!!dateError}
+            />
+            <AppDatePicker
+              label="Hasta"
+              value={sessionTo}
+              onChange={setSessionTo}
+              size="small"
+              error={!!dateError}
+            />
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleGenerateSessions}
+              disabled={generateSessionsMutation.isPending || !!dateError || !sessionFrom || !sessionTo}
+            >
+              {generateSessionsMutation.isPending ? "Generando..." : "Generar sesiones"}
+            </Button>
+          </Stack>
+        )}
 
-        {dateError && (
+        {isAdmin && dateError && (
           <Typography variant="caption" color="error" sx={{ display: "block", mb: 2 }}>
             {dateError}
           </Typography>
@@ -213,7 +222,7 @@ export function ClassDetailPage() {
                       {session.session_date} · {session.start_time}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {session.status ? `Estado: ${session.status}` : "Estado: sin definir"}
+                      {session.status ? `Estado: ${sessionStatusLabel(session.status)}` : "Estado: sin definir"}
                     </Typography>
                   </Box>
 

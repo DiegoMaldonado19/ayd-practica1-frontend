@@ -58,12 +58,21 @@ export const disciplineOptions: Array<{ value: string; label: string }> = discip
   (value) => ({ value, label: disciplineLabel[value] }),
 );
 
-export const sessionStatusLabel: Record<string, string> = {
+const sessionStatusLabels: Record<string, string> = {
   SCHEDULED: "Programada",
   IN_PROGRESS: "En curso",
   COMPLETED: "Completada",
   CANCELLED: "Cancelada",
 };
+
+/**
+ * Traduce el estado de una sesión a español. Normaliza la clave a mayúsculas para
+ * tolerar variantes de mayúsculas/minúsculas que pueda enviar el backend.
+ */
+export function sessionStatusLabel(status?: string): string {
+  if (!status) return "";
+  return sessionStatusLabels[status.toUpperCase()] ?? status;
+}
 
 export const enrollmentStatusLabels: Record<string, string> = {
   ENROLLED: "Inscrito",

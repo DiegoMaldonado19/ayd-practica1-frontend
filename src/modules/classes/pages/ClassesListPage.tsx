@@ -1,15 +1,14 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/useAuth";
-import { Box, Button, Chip, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Chip, InputAdornment, MenuItem, Paper, Stack, TextField, Typography } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
 import { AllCommunityModule, ModuleRegistry, themeMaterial } from "ag-grid-community";
 import type { ColDef } from "ag-grid-community";
-import { Add as AddIcon } from "@mui/icons-material";
-import { useClassSessions, useGroupClasses } from "@/modules/classes/hooks";
-import type { ClassDiscipline, ClassSession } from "@/modules/classes/types";
-import { AppDatePicker } from "@/components/AppDatePicker";
-import { disciplineOptions, isoDate, sessionStatusLabel } from "@/modules/classes/components/classLabels";
+import { Add as AddIcon, Search as SearchIcon } from "@mui/icons-material";
+import { useGroupClasses } from "@/modules/classes/hooks";
+import type { ClassDiscipline, GroupClass } from "@/modules/classes/types";
+import { disciplineLabel, disciplineOptions, weekdayLabel } from "@/modules/classes/components/classLabels";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -18,84 +17,63 @@ export function ClassesListPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
   const [discipline, setDiscipline] = useState<ClassDiscipline | "">("");
-  const [groupClassId, setGroupClassId] = useState<number | "">("");
-  const [from, setFrom] = useState(isoDate(0));
-  const [to, setTo] = useState(isoDate(14));
+  const [search, setSearch] = useState("");
 
-  const { data: classesData } = useGroupClasses({ page: 0, size: 100, active: true });
-  const { data, isLoading, isError } = useClassSessions({
-    from,
-    to,
-    discipline: discipline || undefined,
-    group_class_id: groupClassId === "" ? undefined : Number(groupClassId),
-    page: 0,
-    size: 50,
-  });
+  const { data, isLoading, isError } = useGroupClasses({ page: 0, size: 200, active: true });
 
-  const columnDefs = useMemo<ColDef<ClassSession>[]>(
+  const rows = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return (data?.content ?? []).filter((groupClass) => {
+      if (discipline && groupClass.discipline !== discipline) return false;
+      if (!needle) return true;
+      return `${groupClass.code} ${groupClass.name}`.toLowerCase().includes(needle);
+    });
+  }, [data, search, discipline]);
+
+  const columnDefs = useMemo<ColDef<GroupClass>[]>(
     () => [
+      { field: "code", headerName: "Código", width: 120 },
       {
-        headerName: "Clase",
+        field: "name",
+        headerName: "Curso",
         flex: 1.5,
-        valueGetter: (params) => params.data?.group_class_name ?? `Clase #${params.data?.group_class_id ?? "-"}`,
+        valueGetter: (params) => params.data?.name ?? "—",
       },
       {
         headerName: "Disciplina",
         width: 140,
-        valueGetter: (params) => params.data?.discipline ?? "-",
+        valueGetter: (params) => (params.data?.discipline ? disciplineLabel[params.data.discipline] ?? params.data.discipline : "—"),
       },
       {
-        headerName: "Fecha",
+        headerName: "Día",
         width: 120,
-        valueGetter: (params) => params.data?.session_date ?? "-",
+        valueGetter: (params) => (params.data?.weekday ? weekdayLabel[params.data.weekday] ?? params.data.weekday : "—"),
       },
       {
         headerName: "Horario",
-        width: 150,
+        width: 160,
         valueGetter: (params) => {
-          const session = params.data;
-          if (!session) return "-";
-          return `${session.start_time ?? "--:--"}${session.duration_minutes ? ` · ${session.duration_minutes} min` : ""}`;
+          const groupClass = params.data;
+          if (!groupClass) return "—";
+          return `${groupClass.start_time ?? "--:--"}${groupClass.duration_minutes ? ` · ${groupClass.duration_minutes} min` : ""}`;
         },
       },
       {
-        headerName: "Cupo",
-        width: 120,
-        valueGetter: (params) => {
-          const session = params.data;
-          if (!session) return "-";
-          const taken = session.seats_taken ?? 0;
-          const available = session.seats_available ?? 0;
-          const max = session.max_capacity ?? taken + available;
-          return `${available}/${max}`;
-        },
+        headerName: "Cupo máximo",
+        width: 130,
+        valueGetter: (params) => params.data?.max_capacity ?? "—",
       },
       {
         headerName: "Estado",
         width: 120,
-        valueGetter: (params) => sessionStatusLabel[params.data?.status ?? ""] ?? params.data?.status ?? "-",
-        cellStyle: (params) => {
-          const status = params.data?.status;
-          if (status === "CANCELLED") {
-            return { color: "#d32f2f" };
-          }
-          return { color: "#2e7d32" };
-        },
-      },
-      {
-        headerName: "Acceso",
-        width: 120,
-        cellRenderer: (params: { data?: ClassSession }) => {
-          const hasSeats = (params.data?.seats_available ?? 0) > 0;
-          return (
-            <Chip
-              label={hasSeats ? "Disponible" : "Lleno"}
-              color={hasSeats ? "success" : "warning"}
-              size="small"
-              variant="filled"
-            />
-          );
-        },
+        cellRenderer: (params: { data?: GroupClass }) => (
+          <Chip
+            label={params.data?.active ? "Activa" : "Inactiva"}
+            color={params.data?.active ? "success" : "default"}
+            size="small"
+            variant="filled"
+          />
+        ),
       },
     ],
     []
@@ -120,10 +98,26 @@ export function ClassesListPage() {
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 3 }}>
         <TextField
+          label="Buscar"
+          placeholder="Código o nombre del curso..."
+          size="small"
+          sx={{ minWidth: 260 }}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+        />
+
+        <TextField
           select
           label="Disciplina"
           value={discipline}
-          onChange={(e) => setDiscipline(e.target.value as ClassDiscipline | "")}
+          onChange={(event) => setDiscipline(event.target.value as ClassDiscipline | "")}
           size="small"
           sx={{ minWidth: 200 }}
         >
@@ -134,36 +128,6 @@ export function ClassesListPage() {
             </MenuItem>
           ))}
         </TextField>
-
-        <TextField
-          select
-          label="Clase base"
-          value={groupClassId}
-          onChange={(e) => setGroupClassId(e.target.value === "" ? "" : Number(e.target.value))}
-          size="small"
-          sx={{ minWidth: 220 }}
-        >
-          <MenuItem value="">Todas</MenuItem>
-          {(classesData?.content ?? []).map((classItem) => (
-            <MenuItem key={classItem.group_class_id} value={classItem.group_class_id}>
-              {classItem.name}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        <AppDatePicker
-          label="Desde"
-          value={from}
-          onChange={setFrom}
-          size="small"
-        />
-
-        <AppDatePicker
-          label="Hasta"
-          value={to}
-          onChange={setTo}
-          size="small"
-        />
       </Stack>
 
       {isError && (
@@ -175,7 +139,7 @@ export function ClassesListPage() {
       <Paper sx={{ height: 560, width: "100%" }}>
         <AgGridReact
           theme={themeMaterial}
-          rowData={data?.content ?? []}
+          rowData={rows}
           columnDefs={columnDefs}
           loading={isLoading}
           pagination
