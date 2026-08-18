@@ -26,8 +26,8 @@ export function MemberDetailPage() {
   const navigate = useNavigate();
   const { memberId } = useParams();
   const { user } = useAuth();
-  // PATCH /members/{id}/status es exclusivo de ADMIN; el recepcionista llega a esta
-  // pantalla pero no puede cambiar el estado.
+  // El alta, la edición y PATCH /members/{id}/status son exclusivos de ADMIN; el
+  // recepcionista llega a esta pantalla pero solo la consulta.
   const isAdmin = user?.role === "ADMIN";
   const { data: member, isLoading, isError } = useMember(Number(memberId));
   const updateStatus = useUpdateMemberStatus(Number(memberId));
@@ -85,9 +85,11 @@ export function MemberDetailPage() {
         </Box>
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-          <Button variant="outlined" startIcon={<Edit />} onClick={() => navigate(`/members/${memberId}/edit`)}>
-            Editar
-          </Button>
+          {isAdmin && (
+            <Button variant="outlined" startIcon={<Edit />} onClick={() => navigate(`/members/${memberId}/edit`)}>
+              Editar
+            </Button>
+          )}
 
           {isAdmin && (
             <>
