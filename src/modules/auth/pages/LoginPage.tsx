@@ -3,9 +3,13 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Link as RouterLink, useLocation, useNavigate, type Location } from "react-router-dom";
 import LoadingButton from "@mui/lab/LoadingButton";
 import Alert from "@mui/material/Alert";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useState } from "react";
 import { useAuth } from "@/auth/useAuth";
 import { getErrorMessage } from "@/api/types";
 import { AuthCard } from "../components/AuthCard";
@@ -18,6 +22,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const loginMutation = useLoginMutation();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -65,11 +70,25 @@ export function LoginPage() {
 
         <TextField
           label="Contraseña"
-          type="password"
+          type={showPassword ? "text" : "password"}
           autoComplete="current-password"
           error={Boolean(errors.password)}
           helperText={errors.password?.message}
           {...register("password")}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  onClick={() => setShowPassword((current) => !current)}
+                  onMouseDown={(event) => event.preventDefault()}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
 
         <LoadingButton type="submit" variant="contained" size="large" loading={loginMutation.isPending}>

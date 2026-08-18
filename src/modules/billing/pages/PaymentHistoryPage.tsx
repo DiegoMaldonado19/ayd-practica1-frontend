@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { usePayments } from "@/modules/billing/hooks";
 import { getPaymentReceipt } from "@/modules/billing/services";
 import type { Payment, PaymentStatus } from "@/modules/billing/types";
 import {
-  formatCurrency,
   paymentConceptLabel,
   paymentMethodLabel,
   paymentStatusLabel,
@@ -12,6 +11,7 @@ import {
 import { PaymentsFiltersBar } from "@/modules/billing/components/PaymentsFiltersBar";
 import { PaymentsTable } from "@/modules/billing/components/PaymentsTable";
 import { ListPagination } from "@/modules/billing/components/ListPagination";
+import { ReceiptDialog, type ReceiptData } from "@/modules/billing/components/ReceiptDialog";
 
 const PAGE_SIZE = 12;
 
@@ -23,7 +23,7 @@ export function PaymentHistoryPage() {
   const [page, setPage] = useState(1);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [receiptLoading, setReceiptLoading] = useState(false);
-  const [receiptData, setReceiptData] = useState<{ receipt_series: string; receipt_number: number; receipt_issued_at: string } | null>(null);
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [receiptPayment, setReceiptPayment] = useState<Payment | null>(null);
   const [receiptError, setReceiptError] = useState<string | null>(null);
 
@@ -108,53 +108,14 @@ export function PaymentHistoryPage() {
         onChange={setPage}
       />
 
-      <Dialog open={receiptOpen} onClose={() => setReceiptOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle>Comprobante de pago</DialogTitle>
-        <DialogContent dividers>
-          {receiptLoading ? (
-            <Typography variant="body2" color="text.secondary">
-              Cargando comprobante...
-            </Typography>
-          ) : receiptError ? (
-            <Typography variant="body2" color="error">
-              {receiptError}
-            </Typography>
-          ) : receiptData ? (
-            <Stack spacing={1.5}>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="text.secondary">Pago #</Typography>
-                <Typography variant="body2">{receiptPayment?.payment_id}</Typography>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="text.secondary">Serie</Typography>
-                <Typography variant="body2">{receiptData.receipt_series}</Typography>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="text.secondary">Número</Typography>
-                <Typography variant="body2">{receiptData.receipt_number}</Typography>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="text.secondary">Emitido</Typography>
-                <Typography variant="body2">
-                  {receiptData.receipt_issued_at ? new Date(receiptData.receipt_issued_at).toLocaleString() : "—"}
-                </Typography>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body2" color="text.secondary">Total pagado</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Q {receiptPayment ? formatCurrency(Number(receiptPayment.net_amount ?? receiptPayment.amount ?? 0)) : "—"}
-                </Typography>
-              </Box>
-            </Stack>
-          ) : null}
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setReceiptOpen(false)}>Cerrar</Button>
-          <Button variant="contained" disabled={!receiptData} onClick={() => window.print()}>
-            Imprimir
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ReceiptDialog
+        open={receiptOpen}
+        onClose={() => setReceiptOpen(false)}
+        loading={receiptLoading}
+        error={receiptError}
+        receiptData={receiptData}
+        payment={receiptPayment}
+      />
     </Box>
   );
 }
