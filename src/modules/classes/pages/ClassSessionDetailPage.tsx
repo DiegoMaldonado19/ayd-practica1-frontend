@@ -86,10 +86,9 @@ export function ClassSessionDetailPage() {
   // GET /members es 403 para un socio, así que la lista solo se pide cuando se usa.
   const { data: membersData } = useMembers({ page: 0, size: 500, status: "ACTIVE" }, canReadRoster);
 
-  const { data: myEnrollments } = useMemberEnrollments(
-    isMember ? ownMemberId : undefined,
-    session ? { from: session.session_date, to: session.session_date } : {},
-  );
+  const { data: myEnrollments } = useMemberEnrollments(isMember ? ownMemberId : undefined, {
+    status: "ENROLLED",
+  });
   const { data: myWaitlist } = useMemberWaitlistEntries(isMember ? ownMemberId : undefined);
 
   const enrollMutation = useEnrollMemberInClassSession(sessionNumber);
@@ -258,7 +257,7 @@ export function ClassSessionDetailPage() {
           <Grid item xs={12} sm={4}>
             <ClassInfoField
               label="Estado"
-              value={session.status ? sessionStatusLabel[session.status] ?? session.status : "—"}
+              value={session.status ? sessionStatusLabel(session.status) : "—"}
             />
           </Grid>
           {session.cancellation_reason && (
@@ -282,16 +281,24 @@ export function ClassSessionDetailPage() {
           ) : !isOpenForChanges ? (
             <Alert severity="info">Esta sesión ya no admite cambios.</Alert>
           ) : myEnrollment ? (
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ sm: "center" }}>
-              <Chip color="success" label="Estás inscrito en esta sesión" />
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => cancelEnrollment.mutate(myEnrollment.class_enrollment_id)}
-                disabled={cancelEnrollment.isPending}
-              >
-                {cancelEnrollment.isPending ? "Cancelando..." : "Cancelar mi inscripción"}
-              </Button>
+            <Stack spacing={2}>
+              <Chip color="success" label="Estás inscrito en esta sesión" sx={{ alignSelf: "flex-start" }} />
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems={{ sm: "center" }}>
+                <Button variant="contained" disabled>
+                  Inscribirme
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => cancelEnrollment.mutate(myEnrollment.class_enrollment_id)}
+                  disabled={cancelEnrollment.isPending}
+                >
+                  {cancelEnrollment.isPending ? "Cancelando..." : "Cancelar mi inscripción"}
+                </Button>
+              </Stack>
+              <Typography variant="caption" color="text.secondary">
+                Ya estás inscrito en esta sesión; el botón "Inscribirme" queda deshabilitado.
+              </Typography>
             </Stack>
           ) : myWaitlistEntry && myWaitlistEntry.status !== "EXPIRED" ? (
             <Stack spacing={2}>

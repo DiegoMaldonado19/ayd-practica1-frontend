@@ -150,9 +150,12 @@ export const router = createBrowserRouter([
             ],
           },
           {
+            element: <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />,
+            children: [{ path: "/promotions", element: <PromotionsPage /> }],
+          },
+          {
             element: <ProtectedRoute allowedRoles={["ADMIN"]} />,
             children: [
-              { path: "/promotions", element: <PromotionsPage /> },
               { path: "/promotions/new", element: <PromotionFormPage /> },
               { path: "/promotions/:promotionId/edit", element: <PromotionFormPage /> },
             ],

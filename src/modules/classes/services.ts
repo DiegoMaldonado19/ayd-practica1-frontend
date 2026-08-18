@@ -137,7 +137,7 @@ export async function confirmWaitlistEntry(waitlistEntryId: number): Promise<Cla
  */
 export async function getMemberEnrollments(
   memberId: number,
-  params: { from?: string; to?: string } = {}
+  params: { from?: string; to?: string; status?: string } = {}
 ): Promise<Page<ClassEnrollment>> {
   const { data } = await apiClient.get<Page<ClassEnrollment>>(
     `/members/${memberId}/enrollments`,

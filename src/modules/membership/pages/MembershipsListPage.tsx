@@ -37,6 +37,7 @@ import { MemberSelect } from "@/modules/membership/components/MemberSelect";
 import type { Member } from "@/modules/members/types";
 import { AppDatePicker } from "@/components/AppDatePicker";
 import { useAuth } from "@/auth/useAuth";
+import { useMembers } from "@/modules/members/hooks";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -181,7 +182,7 @@ function ContractDialog({
 export function MembershipsListPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
+  const canManage = user?.role === "ADMIN" || user?.role === "RECEPTIONIST";
 
   const [status, setStatus] = useState<MembershipStatus | "">("");
   const [planId, setPlanId] = useState<number | "">("");
@@ -191,6 +192,15 @@ export function MembershipsListPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: plans } = useMembershipPlans({ page: 0, size: 50 });
+
+  const { data: membersData } = useMembers({ page: 0, size: 500 });
+  const memberNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    (membersData?.content ?? []).forEach((member) => {
+      map.set(member.member_id, member.person.full_name);
+    });
+    return map;
+  }, [membersData]);
 
   const { data, isLoading, isError } = useMemberships({
     page,
@@ -218,7 +228,12 @@ export function MembershipsListPage() {
   const columnDefs = useMemo<ColDef<Membership>[]>(
     () => [
       { field: "membership_id", headerName: "ID", width: 80 },
-      { field: "member_id", headerName: "Socio", width: 90 },
+      {
+        headerName: "Socio",
+        width: 220,
+        valueGetter: (p) =>
+          p.data ? memberNameById.get(p.data.member_id) ?? `Socio #${p.data.member_id}` : "",
+      },
       {
         headerName: "Plan",
         flex: 1,
@@ -247,7 +262,7 @@ export function MembershipsListPage() {
           p.data ? `Q ${Number(p.data.paid_price).toFixed(2)}` : "",
       },
     ],
-    []
+    [memberNameById]
   );
 
   return (
@@ -261,7 +276,7 @@ export function MembershipsListPage() {
         }}
       >
         <Typography variant="h4">Membresías</Typography>
-        {isAdmin && (
+        {canManage && (
           <Button
             variant="contained"
             startIcon={<AddIcon />}

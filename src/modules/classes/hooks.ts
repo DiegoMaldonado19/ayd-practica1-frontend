@@ -174,7 +174,7 @@ export function useJoinWaitlist(classSessionId: number) {
  */
 export function useMemberEnrollments(
   memberId: number | undefined,
-  params: { from?: string; to?: string } = {},
+  params: { from?: string; to?: string; status?: string } = {},
 ) {
   return useQuery({
     queryKey: ["member-enrollments", memberId, params],
