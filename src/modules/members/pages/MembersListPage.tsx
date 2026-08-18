@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import { AgGridReact } from "ag-grid-react";
 import { ModuleRegistry, AllCommunityModule, themeMaterial } from "ag-grid-community";
 import type { ColDef } from "ag-grid-community";
+import { useAuth } from "@/auth/useAuth";
 import { useMembers } from "@/modules/members/hooks";
 import type { Member, MemberStatus } from "@/modules/members/types";
 import { buildMembersColumns } from "@/modules/members/components/MemberColumns";
@@ -18,6 +19,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 export function MembersListPage() {
   const navigate = useNavigate();
+  // El alta del expediente es del administrador; el recepcionista solo consulta.
+  const isAdmin = useAuth().user?.role === "ADMIN";
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<MemberStatus | "">("");
   const [page, setPage] = useState(0);
@@ -50,9 +53,11 @@ export function MembersListPage() {
           </Typography>
         </Box>
 
-        <Button variant="contained" onClick={() => navigate("/members/new")}>
-          Nuevo socio
-        </Button>
+        {isAdmin && (
+          <Button variant="contained" onClick={() => navigate("/members/new")}>
+            Nuevo socio
+          </Button>
+        )}
       </Stack>
 
       <MemberFiltersBar
